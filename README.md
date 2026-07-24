@@ -20,14 +20,15 @@ Federation · OpenTelemetry, Prometheus, Grafana, Application Insights
 ## Local setup (zero Azure cost to start)
 
 ```bash
-git clone <this repo>
-cd invoice-intelligence-platform
+git clone git@github.com:shreyescodes/Invoice-Intelligence-Platform.git
+cd Invoice-Intelligence-Platform
 cp .env.example .env
 docker compose up -d azurite cosmosdb-emulator analytics-db mock-sap ollama mlflow prometheus grafana
 
 # pull a local model (see model choices below)
 docker compose exec ollama ollama pull qwen2.5:14b
 
+cd backend
 pip install -e ".[dev]" --break-system-packages   # or use a venv
 uvicorn src.api.main:app --reload
 ```

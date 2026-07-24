@@ -38,7 +38,7 @@ services:
 
   # --- Mock SAP OData-style service (PO / vendor master lookups) ---
   mock-sap:
-    build: ./src/mock_sap
+    build: ./backend/src/mock_sap
     ports:
       - "8100:8100"
 
@@ -89,7 +89,7 @@ services:
 
   # --- The FastAPI app itself ---
   api:
-    build: .
+    build: ./backend
     ports:
       - "8000:8000"
     env_file:

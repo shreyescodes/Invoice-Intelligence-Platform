@@ -11,7 +11,7 @@ dependencies = [
     "httpx>=0.27",
     # Azure SDKs
     "azure-functions>=1.21",
-    "azure-durable-functions>=1.2",
+    "azure-functions-durable>=1.2.7",
     "azure-cosmos>=4.7",
     "azure-storage-blob>=12.23",
     "azure-keyvault-secrets>=4.8",
