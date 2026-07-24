@@ -36,6 +36,23 @@ def get_llm_client(settings: Settings | None = None) -> tuple[OpenAI | AzureOpen
     return client, settings.ollama_model
 
 
+@lru_cache
+def get_async_llm_client(settings: Settings | None = None):
+    from openai import AsyncAzureOpenAI, AsyncOpenAI
+    settings = settings or get_settings()
+
+    if settings.llm_provider == "azure_openai":
+        client = AsyncAzureOpenAI(
+            azure_endpoint=settings.azure_openai_endpoint,
+            api_key=settings.azure_openai_api_key,
+            api_version=settings.azure_openai_api_version,
+        )
+        return client, settings.azure_openai_deployment
+
+    client = AsyncOpenAI(base_url=settings.ollama_base_url, api_key="ollama")
+    return client, settings.ollama_model
+
+
 def extract_json(prompt: str, *, settings: Settings | None = None) -> str:
     """Send a prompt, get back the model's raw text response.
 

@@ -18,11 +18,18 @@ def get_cosmos_client() -> CosmosClient:
         # connection_verify=False is required for local emulator's self-signed cert
         is_local = settings.cosmos_endpoint.startswith("https://localhost") or settings.cosmos_endpoint.startswith("https://127.0.0.1")
         
-        _cosmos_client = CosmosClient(
-            url=settings.cosmos_endpoint,
-            credential=settings.cosmos_key,
-            connection_verify=not is_local
-        )
+        if is_local:
+            _cosmos_client = CosmosClient(
+                url=settings.cosmos_endpoint,
+                credential=settings.cosmos_key,
+                connection_verify=False
+            )
+        else:
+            from src.core.security import get_credential
+            _cosmos_client = CosmosClient(
+                url=settings.cosmos_endpoint,
+                credential=get_credential()
+            )
     return _cosmos_client
 
 def get_invoices_container():
@@ -42,9 +49,12 @@ def get_blob_service_client() -> BlobServiceClient:
     global _blob_client
     if _blob_client is None:
         settings = get_settings()
-        _blob_client = BlobServiceClient.from_connection_string(
-            settings.azure_storage_connection_string
-        )
+        conn_str = settings.azure_storage_connection_string
+        if conn_str.startswith("http"):
+            from src.core.security import get_credential
+            _blob_client = BlobServiceClient(account_url=conn_str, credential=get_credential())
+        else:
+            _blob_client = BlobServiceClient.from_connection_string(conn_str)
     return _blob_client
 
 def get_raw_invoices_container():

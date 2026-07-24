@@ -49,7 +49,9 @@ if app:
         # 5. Handle Decision
         if decision.get("approve"):
             yield context.call_activity("update_status", {"invoice_id": invoice_id, "status": "APPROVED"})
-            # 6. Data Warehouse Sync
+            # 6. SAP Write-back
+            yield context.call_activity("post_to_sap", extracted_data)
+            # 7. Data Warehouse Sync
             yield context.call_activity("sync_to_dw", invoice_id)
         else:
             yield context.call_activity("update_status", {"invoice_id": invoice_id, "status": "REJECTED"})
@@ -73,7 +75,7 @@ if app:
     @app.activity_trigger(input_name="extractedData")
     def validate_invoice(extractedData: dict) -> dict:
         settings = get_settings()
-        po_number = extractedData.get("invoice_number", "")
+        po_number = extractedData.get("po_number", "")
         if not po_number:
             return {"valid": False, "reason": "No PO Number"}
             
@@ -127,6 +129,19 @@ if app:
     def sync_to_dw(invoiceId: str) -> str:
         sync_invoice_to_warehouse(invoiceId)
         return "ok"
+        
+    @app.activity_trigger(input_name="extractedData")
+    def post_to_sap(extractedData: dict) -> str:
+        settings = get_settings()
+        try:
+            resp = requests.post(f"{settings.mock_sap_base_url}/InvoicePostings", json=extractedData)
+            if resp.status_code in (200, 201):
+                return "ok"
+            logging.error(f"SAP Write-back failed: {resp.text}")
+            return "failed"
+        except Exception as e:
+            logging.error(f"SAP Write-back failed: {e}")
+            return "failed"
 
     @app.route(route="approvals/{invoiceId}")
     @app.durable_client_input(client_name="client")

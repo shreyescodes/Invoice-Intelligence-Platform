@@ -43,11 +43,8 @@ class ChatResponse(BaseModel):
 async def ask(query: ChatQuery) -> ChatResponse:
     settings = get_settings()
     
-    # Use OpenAI python client but point it to local Ollama server
-    client = AsyncOpenAI(
-        base_url=settings.ollama_base_url,
-        api_key="ollama" # Ollama does not require a real key
-    )
+    from src.llm.provider import get_async_llm_client
+    client, model = get_async_llm_client(settings)
     
     system_prompt = """You are a data assistant for an invoice processing platform.
     Translate the user's natural language question into a PostgreSQL SQL query.
@@ -56,7 +53,7 @@ async def ask(query: ChatQuery) -> ChatResponse:
     
     try:
         response = await client.chat.completions.create(
-            model=settings.ollama_model,
+            model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": query.question}

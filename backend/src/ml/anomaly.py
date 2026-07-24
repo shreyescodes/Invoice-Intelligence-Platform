@@ -69,6 +69,13 @@ class InvoiceAnomalyDetector:
         self._is_trained = True
         self._save_model()
 
+        import mlflow
+        if mlflow.active_run():
+            mlflow.log_param("n_estimators", self.model.n_estimators)
+            mlflow.log_param("contamination", self.model.contamination)
+            mlflow.log_metric("training_samples", len(X))
+            mlflow.sklearn.log_model(self.model, "model", registered_model_name="invoice-anomaly")
+
     def score(self, vendor_id: str, subtotal: Decimal, tax_amount: Decimal, total_amount: Decimal) -> float:
         """
         Returns a normalized anomaly score between 0.0 and 1.0.

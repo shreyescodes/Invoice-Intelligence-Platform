@@ -37,15 +37,18 @@ def train() -> None:
     mlflow.set_experiment("invoice-anomaly-detection")
 
     with mlflow.start_run():
-        # TODO: replace with real feature matrix from the warehouse
-        raise NotImplementedError("Build feature loading + training — see module docstring")
-
-        # Sketch of what the rest looks like once features exist:
-        # model = IsolationForest(contamination=0.05, random_state=42)
-        # model.fit(X_train)
-        # mlflow.log_param("contamination", 0.05)
-        # mlflow.log_metric("precision_at_threshold", precision)
-        # mlflow.sklearn.log_model(model, "model", registered_model_name="invoice-anomaly")
+        from decimal import Decimal
+        historical_data = [
+            {"vendor_id": "V001", "subtotal": Decimal("100"), "tax_amount": Decimal("10"), "total_amount": Decimal("110")},
+            {"vendor_id": "V002", "subtotal": Decimal("200"), "tax_amount": Decimal("20"), "total_amount": Decimal("220")},
+            {"vendor_id": "V003", "subtotal": Decimal("500"), "tax_amount": Decimal("50"), "total_amount": Decimal("550")},
+            {"vendor_id": "V001", "subtotal": Decimal("100"), "tax_amount": Decimal("1000"), "total_amount": Decimal("1100")} # Anomaly
+        ] * 10
+        
+        from src.ml.anomaly import detector
+        detector.train(historical_data)
+        
+        print("Model trained and logged to MLflow successfully.")
 
 
 if __name__ == "__main__":

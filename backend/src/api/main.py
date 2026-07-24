@@ -29,9 +29,12 @@ app.add_middleware(
 
 configure_observability(app, settings)
 
-app.include_router(invoices.router, prefix="/invoices", tags=["invoices"])
-app.include_router(approvals.router, prefix="/approvals", tags=["approvals"])
-app.include_router(chat.router, prefix="/chat", tags=["chat"])
+from fastapi import Depends
+from src.core.security import require_user
+
+app.include_router(invoices.router, prefix="/invoices", tags=["invoices"], dependencies=[Depends(require_user)])
+app.include_router(approvals.router, prefix="/approvals", tags=["approvals"], dependencies=[Depends(require_user)])
+app.include_router(chat.router, prefix="/chat", tags=["chat"], dependencies=[Depends(require_user)])
 
 
 @app.get("/health")

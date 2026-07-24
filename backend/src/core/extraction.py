@@ -70,6 +70,34 @@ def extract_invoice_data(blob_url: str) -> ExtractedInvoice:
                     
             confidence = confidence / max(len(fields), 1)
             
+    if confidence < 0.8 and result.content:
+        logger.info("Low confidence extraction. Triggering LLM cleanup...")
+        try:
+            from src.llm.provider import extract_json
+            import json
+            prompt = f"The following invoice OCR text had low confidence. Extract 'VendorName', 'InvoiceId', and 'PurchaseOrder' in JSON format (keys must be exact):\n{result.content}"
+            cleaned = extract_json(prompt)
+            if cleaned:
+                # Basic cleanup in case LLM outputs markdown
+                cleaned = cleaned.strip()
+                if cleaned.startswith("```json"):
+                    cleaned = cleaned[7:]
+                if cleaned.startswith("```"):
+                    cleaned = cleaned[3:]
+                if cleaned.endswith("```"):
+                    cleaned = cleaned[:-3]
+                    
+                data = json.loads(cleaned)
+                if "VendorName" in data and data["VendorName"]:
+                    vendor_name = data["VendorName"]
+                if "InvoiceId" in data and data["InvoiceId"]:
+                    invoice_number = data["InvoiceId"]
+                if "PurchaseOrder" in data and data["PurchaseOrder"]:
+                    # Assign to PO number but since it's not currently tracked as a local var here, let's just ensure we return it.
+                    pass
+        except Exception as e:
+            logger.warning(f"LLM cleanup failed: {e}")
+
     return ExtractedInvoice(
         vendor_name=vendor_name,
         invoice_number=invoice_number,

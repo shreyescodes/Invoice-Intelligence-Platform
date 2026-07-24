@@ -56,10 +56,9 @@ def configure_observability(app: FastAPI, settings: Settings) -> None:
     )
 
     # --- Metrics: exposed at /metrics for Prometheus to scrape ---
-    # TODO(phase 4): mount opentelemetry.exporter.prometheus'
-    # PrometheusMetricReader here, or use prometheus_client's
-    # make_asgi_app() mounted at /metrics. Add request-count and
-    # request-latency-histogram instruments in api/main.py middleware.
+    from prometheus_client import make_asgi_app
+    metrics_app = make_asgi_app()
+    app.mount("/metrics", metrics_app)
 
 
 def get_logger(name: str) -> structlog.stdlib.BoundLogger:

@@ -24,7 +24,7 @@ async def upload_invoice(file: UploadFile) -> InvoiceUploadResponse:
     record = InvoiceRecord(
         id=invoice_id,
         vendor_id="PENDING", # Will be updated by orchestrator
-        status=InvoiceStatus.PROCESSING,
+        status=InvoiceStatus.RECEIVED,
         blob_path=blob_path,
         anomaly_reason="Waiting for orchestrator..."
     )

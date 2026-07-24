@@ -76,6 +76,7 @@ class InvoiceRecord(BaseModel):
     extracted: ExtractedInvoice | None = None
     sap_match: dict | None = None  # TODO: type this once validate_po_sap.py exists
     anomaly_score: float | None = None
+    anomaly_reason: str | None = None
     approved_by: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

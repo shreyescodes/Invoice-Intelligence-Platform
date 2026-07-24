@@ -27,3 +27,4 @@ build/
 .next/
 venv312/
 
+*.egg-info/
