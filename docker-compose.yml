@@ -1,0 +1,116 @@
+name: invoice-platform
+
+services:
+  # --- Azure Blob Storage emulator (free, replaces real Blob Storage) ---
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000"  # blob
+      - "10001:10001"  # queue
+    volumes:
+      - azurite-data:/data
+
+  # --- Azure Cosmos DB emulator (free, replaces real Cosmos DB) ---
+  cosmosdb-emulator:
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+    ports:
+      - "8081:8081"
+      - "10250-10255:10250-10255"
+    environment:
+      AZURE_COSMOS_EMULATOR_PARTITION_COUNT: "3"
+      AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: "true"
+    volumes:
+      - cosmos-data:/tmp/cosmos/appdata
+
+  # --- Local Postgres standing in for Snowflake during dev ---
+  # Same star-schema SQL runs on both; point at real Snowflake only
+  # for the final integration pass (see README > Cost-conscious build).
+  analytics-db:
+    image: postgres:16
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: analytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - analytics-data:/var/lib/postgresql/data
+
+  # --- Mock SAP OData-style service (PO / vendor master lookups) ---
+  mock-sap:
+    build: ./src/mock_sap
+    ports:
+      - "8100:8100"
+
+  # --- Local LLM runtime (OpenAI-compatible API, zero token cost) ---
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    # First run: docker compose exec ollama ollama pull qwen2.5:14b
+
+  # --- MLflow tracking server (experiment tracking, model registry) ---
+  mlflow:
+    image: python:3.11-slim
+    working_dir: /mlflow
+    command: >
+      bash -c "pip install --no-cache-dir mlflow==2.17.2 &&
+               mlflow server --host 0.0.0.0 --port 5001
+               --backend-store-uri sqlite:///mlflow.db
+               --default-artifact-root /mlflow/artifacts"
+    ports:
+      - "5001:5001"
+    volumes:
+      - mlflow-data:/mlflow
+
+  # --- Metrics + dashboards (self-hosted, unlimited, zero cost) ---
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  # --- The FastAPI app itself ---
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      COSMOS_ENDPOINT: "https://cosmosdb-emulator:8081"
+      MOCK_SAP_BASE_URL: "http://mock-sap:8100"
+      OLLAMA_BASE_URL: "http://ollama:11434/v1"
+      MLFLOW_TRACKING_URI: "http://mlflow:5001"
+    depends_on:
+      - azurite
+      - cosmosdb-emulator
+      - mock-sap
+      - ollama
+
+volumes:
+  azurite-data:
+  cosmos-data:
+  analytics-data:
+  ollama-data:
+  mlflow-data:
+  prometheus-data:
+  grafana-data:
