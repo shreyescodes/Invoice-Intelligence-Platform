@@ -1,54 +1,67 @@
-# Invoice Intelligence Platform
+﻿# Invoice Intelligence Platform
 
-AI-powered accounts-payable automation: ingest vendor invoices, extract
-structured data with OCR + an LLM, validate against SAP purchase
-orders, score for anomalies, route for human approval when needed,
-post back to SAP, and feed a Snowflake-backed analytics layer.
+First of all, welcome guys!
 
-Built as a learning project — every component exists because a real
-enterprise AP-automation platform needs it, not because it fits a
-skills checklist. See the TODO in each file for what to build and why.
+This is an AI-powered accounts-payable automation platform I built as a learning project. I am ingesting vendor invoices, extracting structured data using OCR + an LLM, validating everything against my SAP purchase orders, scoring for anomalies, routing for human approval when needed, posting back to SAP, and finally feeding a Snowflake-backed analytics layer.
 
-## Stack
+I have built this as a proper enterprise-grade AP-automation platform. Kindly check the codebase to see how I have done the needful for every component.
 
-Python 3.11, FastAPI, Pydantic v2, Pytest · Azure Functions (Durable
-Functions), Cosmos DB, Blob Storage, Key Vault, Document Intelligence,
-Azure OpenAI · Snowflake, SQL · GitLab CI/CD, Workload Identity
-Federation · OpenTelemetry, Prometheus, Grafana, Application Insights
-· MLflow, scikit-learn, Azure ML · Managed Identity, OAuth2 (Entra ID)
+## Tech Stack
 
-## Local setup (zero Azure cost to start)
+- **Frontend:** React, Vite, TypeScript, Tailwind CSS
+- **Backend:** Python 3.12, FastAPI, Pydantic v2, Pytest 
+- **Azure Cloud:** Azure Functions (Durable Functions), Cosmos DB, Blob Storage, Key Vault, Document Intelligence, Azure OpenAI, Managed Identity, OAuth2 (Entra ID)
+- **Data & ML:** Snowflake, SQL, MLflow, scikit-learn, Azure ML 
+- **DevOps:** GitHub Actions CI/CD, OpenTelemetry, Prometheus, Grafana
+
+## Pre-requisites & Local Setup
+
+Kindly follow the below steps to set up the project on your local machine (zero Azure cost to start).
 
 ```bash
+# 1. Clone the repo
 git clone git@github.com:shreyescodes/Invoice-Intelligence-Platform.git
 cd Invoice-Intelligence-Platform
+
+# 2. Setup environment variables
 cp .env.example .env
+
+# 3. Start the background services
 docker compose up -d azurite cosmosdb-emulator analytics-db mock-sap ollama mlflow prometheus grafana
 
-# pull a local model (see model choices below)
+# 4. Pull a local model (see model choices below)
 docker compose exec ollama ollama pull qwen2.5:14b
 
+# 5. Setup Python backend
 cd backend
-pip install -e ".[dev]" --break-system-packages   # or use a venv
+python -m venv venv312
+venv312\Scripts\activate
+pip install -e ".[dev]" 
+
+# 6. Start the API
 uvicorn src.api.main:app --reload
 ```
 
-- API: http://localhost:8000/docs
+In a separate terminal, kindly start the frontend UI:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Please find below the local URLs for testing:
+- Frontend UI: http://localhost:5173
+- API Docs: http://localhost:8000/docs
 - Mock SAP: http://localhost:8100/docs
-- Grafana: http://localhost:3000 (anonymous admin access, local only)
-- MLflow: http://localhost:5001
-- Cosmos DB emulator explorer: https://localhost:8081/_explorer/index.html
+- Grafana: http://localhost:3000 (anonymous admin access)
+- Cosmos DB emulator: https://localhost:8081/_explorer/index.html
 
-Run tests: `pytest`
-Lint/typecheck: `ruff check . && mypy src`
+To run backend tests, simply execute: `pytest tests/`
+To check backend linting, please run: `ruff check .`
 
-## Local-first model choices
+## Local-first Model Choices
 
-`LLM_PROVIDER=ollama` in `.env` routes every LLM call through the
-local Ollama container — zero token cost, no Azure OpenAI access
-request needed while you build. Swap to `azure_openai` only for the
-final integration pass (see src/llm/provider.py — same code path
-either way).
+If you set `LLM_PROVIDER=ollama` in your `.env`, I am routing every LLM call through the local Ollama container. This means zero token cost and no Azure OpenAI access request needed while developing! I will swap to `azure_openai` only for the final production deployment.
 
 | Hardware | Model | Pull command |
 |---|---|---|
@@ -56,30 +69,22 @@ either way).
 | 16GB, JSON-heavy extraction | Granite 4.0 | `ollama pull granite4` |
 | 24GB+ VRAM | Qwen 3.6 27B | `ollama pull qwen3.6:27b` |
 
-All expose an OpenAI-compatible API at `:11434/v1` — the SDK code
-never changes, only the model tag.
+## What I Have Implemented (Phases)
 
-## Phase roadmap
+I have successfully completed all phases of the project:
 
-Build in this order — each phase produces something that runs before
-you move on. Detail and rationale for each is in the file TODOs, not
-duplicated here.
+1. **Foundations** - Scaffold is up and running, CI lints and tests are green.
+2. **Extraction** - Document Intelligence + LLM cleanup, `extract_document` activity is fully working.
+3. **Orchestration** - Azure Durable Functions orchestrator is in place, handling mock SAP validation and approval wait states.
+4. **Data layer** - Cosmos DB writes and ETL into the Snowflake star schema are done.
+5. **ML** - Isolation Forest anomaly model is integrated and wired into the orchestrator.
+6. **Cloud & API** - FastAPI endpoints are ready.
+7. **Chat & UI** - React frontend is built, and the NL-to-SQL chat endpoint is up and running.
 
-1. **Foundations** — this scaffold runs, `/health` passes, CI lints and tests green
-2. **Extraction** — Document Intelligence + LLM cleanup, `extract_document` activity
-3. **Orchestration** — Durable Functions orchestrator, mock SAP validation, approval wait
-4. **Data layer** — Cosmos DB writes, ETL into the star schema, dashboards read real data
-5. **ML** — anomaly model, MLflow tracking, wired into the orchestrator
-6. **Cloud + security** — real Azure resources, Key Vault, Managed Identity, WIF deploy
-7. **Chat + polish** — NL query endpoint, OAuth2 on the API, Grafana dashboards finished
+## Cost Notes
 
-## Cost notes
+Kindly note that everything above runs free locally! When deploying to Azure, please be aware that Snowflake and Azure OpenAI are the two genuinely billable pieces. Budget a small spend for the final demo rather than developing against them directly. 
 
-Everything above runs free locally. When you do touch real Azure/
-Snowflake resources: Cosmos DB and Azure Functions have an
-always-free tier, Document Intelligence F0 gives 500 pages/month,
-Grafana Cloud free tier is generous if you want a hosted dashboard
-instead of the local one. Snowflake and Azure OpenAI are the two
-genuinely billable pieces — budget a small one-time spend for the
-final demo rather than developing against them directly. Full
-reasoning in chat / commit history, not repeated here.
+If you have any doubts, please revert back to me! 
+
+Cheers!
