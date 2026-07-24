@@ -5,11 +5,12 @@ like amount, tax ratio, and whether it matches historical patterns for
 the specific vendor.
 """
 
+import os
 from decimal import Decimal
+
+import joblib
 import numpy as np
 from sklearn.ensemble import IsolationForest
-import joblib
-import os
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "isolation_forest.joblib")
 

@@ -1,10 +1,11 @@
 import logging
 from decimal import Decimal
+
 import requests
 
 try:
-    import azure.functions as func
     import azure.durable_functions as df
+    import azure.functions as func
 except ImportError:
     # Will fail if azure-durable-functions is not installed
     # (Requires Python < 3.13)
@@ -14,13 +15,10 @@ except ImportError:
 from src.core.config import get_settings
 from src.core.db import get_invoices_container
 from src.core.extraction import extract_invoice_data
-from src.ml.anomaly import detector
 from src.etl.sync import sync_invoice_to_warehouse
+from src.ml.anomaly import detector
 
-if df:
-    app = df.DFApp(http_auth_level=func.AuthLevel.ANONYMOUS)
-else:
-    app = None
+app = df.DFApp(http_auth_level=func.AuthLevel.ANONYMOUS) if df else None
 
 if app:
     @app.orchestration_trigger(context_name="context")

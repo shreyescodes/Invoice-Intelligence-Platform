@@ -1,5 +1,6 @@
 """Sync approved invoices from Cosmos DB to Snowflake."""
 import logging
+
 import snowflake.connector
 
 from src.core.config import get_settings

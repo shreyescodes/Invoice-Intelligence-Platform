@@ -46,8 +46,9 @@ async def decide(invoice_id: UUID, decision: ApprovalDecision) -> dict[str, str]
         
     container.replace_item(item=item, body=item)
     
-    import httpx
     import logging
+
+    import httpx
     logger = logging.getLogger(__name__)
     try:
         # Notify the sleeping Azure Functions orchestrator

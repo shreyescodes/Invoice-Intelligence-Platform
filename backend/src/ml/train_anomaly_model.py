@@ -27,7 +27,6 @@ Then check http://localhost:5001 (the mlflow container) for the run.
 """
 
 import mlflow
-from sklearn.ensemble import IsolationForest
 
 from src.core.config import get_settings
 

@@ -1,7 +1,9 @@
 """Database and Storage clients."""
 import logging
+
 from azure.cosmos import CosmosClient, PartitionKey
 from azure.storage.blob import BlobServiceClient
+
 from src.core.config import get_settings
 
 logger = logging.getLogger(__name__)

@@ -1,13 +1,10 @@
 """Invoice upload, status, and search endpoints."""
 
-from datetime import datetime
 from uuid import UUID, uuid4
-from decimal import Decimal
 
 from fastapi import APIRouter, HTTPException, UploadFile
-from azure.cosmos.exceptions import CosmosResourceNotFoundError
 
-from src.api.schemas.invoice import InvoiceRecord, InvoiceUploadResponse, InvoiceStatus, ExtractedInvoice
+from src.api.schemas.invoice import InvoiceRecord, InvoiceStatus, InvoiceUploadResponse
 from src.core.db import get_invoices_container, get_raw_invoices_container
 
 router = APIRouter()
@@ -36,8 +33,9 @@ async def upload_invoice(file: UploadFile) -> InvoiceUploadResponse:
     container = get_invoices_container()
     container.create_item(body=record.model_dump(mode='json'))
     
-    import httpx
     import logging
+
+    import httpx
     logger = logging.getLogger(__name__)
     
     orchestration_id = f"ORCH-{uuid4().hex}"

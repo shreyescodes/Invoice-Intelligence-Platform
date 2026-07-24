@@ -1,13 +1,14 @@
 """Azure AI Document Intelligence Integration."""
 import logging
-from decimal import Decimal
 from datetime import datetime
-from azure.core.credentials import AzureKeyCredential
+from decimal import Decimal
+
 from azure.ai.documentintelligence import DocumentIntelligenceClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest
+from azure.core.credentials import AzureKeyCredential
 
-from src.core.config import get_settings
 from src.api.schemas.invoice import ExtractedInvoice
+from src.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 

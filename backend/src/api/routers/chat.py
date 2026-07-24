@@ -21,9 +21,9 @@ injection from LLM output: allowlist to SELECT-only, run against a
 read-only role, and consider a query-plan sanity check before executing.
 """
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter
 from openai import AsyncOpenAI
+from pydantic import BaseModel
 
 from src.core.config import get_settings
 
