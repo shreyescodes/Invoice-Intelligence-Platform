@@ -1,7 +1,6 @@
 api
 core
 etl
-functions
 llm
 ml
 mock_sap

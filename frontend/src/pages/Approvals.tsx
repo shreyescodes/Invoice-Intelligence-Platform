@@ -35,56 +35,59 @@ export const Approvals: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="p-6 text-muted">Loading pending approvals...</div>;
+    return <div className="p-8 text-center text-ios-gray font-medium">Loading pending approvals...</div>;
   }
 
   return (
-    <div className="flex-col gap-6">
-      <div className="mb-6">
-        <h2 className="text-2xl">Pending Approvals</h2>
-        <p className="text-muted mt-4">These invoices have been flagged by the anomaly detection model.</p>
-        {error && <p className="text-sm mt-2" style={{color: 'var(--danger)'}}>API Error: {error}</p>}
+    <div className="flex flex-col gap-6 animate-fade-in">
+      <div className="mb-2">
+        <h2 className="text-3xl font-bold text-white">Pending Approvals</h2>
+        <p className="text-ios-gray mt-1 font-medium tracking-wide">These invoices have been flagged by the anomaly detection model.</p>
+        {error && <p className="text-sm mt-2 text-ios-red font-medium">API Error: {error}</p>}
       </div>
 
       {approvals.length === 0 && !error && (
         <Card>
-          <div className="p-6 text-center text-muted">No pending approvals at this time.</div>
+          <div className="p-12 text-center text-ios-gray font-medium flex flex-col items-center justify-center">
+            <Check size={48} className="opacity-20 mb-4 text-ios-green" />
+            No pending approvals at this time. You're all caught up!
+          </div>
         </Card>
       )}
 
       {approvals.map(inv => (
-        <Card key={inv.id} className="mb-6">
+        <Card key={inv.id} className="mb-6 hover:bg-white/5 transition-colors">
           <div className="flex justify-between items-start mb-6">
             <div className="flex items-start gap-4">
-              <div className="p-3" style={{background: 'rgba(245, 158, 11, 0.1)', borderRadius: '8px', color: 'var(--warning)'}}>
+              <div className="p-3 bg-ios-orange/10 text-ios-orange rounded-full">
                 <AlertTriangle size={24} />
               </div>
               <div>
-                <h3 className="text-xl">{inv.id}</h3>
-                <p className="text-muted mt-4">{inv.vendor_name || inv.vendor_id || 'Unknown'} • {inv.amount ? `$${inv.amount.toFixed(2)}` : 'N/A'} • {inv.date || 'No Date'}</p>
+                <h3 className="text-xl font-bold text-white">{inv.id}</h3>
+                <p className="text-ios-gray mt-1 font-medium tracking-wide">{inv.vendor_name || inv.vendor_id || 'Unknown'} • {inv.amount ? `$${inv.amount.toLocaleString()}` : 'N/A'} • {inv.date || 'No Date'}</p>
               </div>
             </div>
-            <div style={{textAlign: 'right'}}>
-              <div className="text-2xl" style={{color: 'var(--warning)', fontWeight: 700}}>{inv.anomaly_score?.toFixed(2) || 'N/A'}</div>
-              <div className="text-xs text-muted">Anomaly Score</div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-ios-orange">{inv.anomaly_score?.toFixed(2) || 'N/A'}</div>
+              <div className="text-xs text-ios-gray font-semibold tracking-wide uppercase mt-1">Anomaly Score</div>
             </div>
           </div>
 
-          <div className="flex gap-6 mb-6 mt-6">
-            <div className="flex-1 p-6" style={{background: 'var(--bg-tertiary)', borderRadius: '8px'}}>
-              <h4 className="font-medium mb-4 text-sm text-muted">Anomaly Reason</h4>
-              <p className="text-sm">{inv.anomaly_reason || 'Model flagged anomalous data patterns.'}</p>
+          <div className="flex flex-col md:flex-row gap-6 mb-6 mt-6">
+            <div className="flex-1 p-6 bg-white/5 rounded-2xl border border-white/5">
+              <h4 className="font-semibold mb-4 text-xs text-ios-gray uppercase tracking-wider">Anomaly Reason</h4>
+              <p className="text-sm text-white font-medium">{inv.anomaly_reason || 'Model flagged anomalous data patterns.'}</p>
             </div>
-            <div className="flex-1 p-6" style={{background: 'var(--bg-tertiary)', borderRadius: '8px'}}>
-              <h4 className="font-medium mb-4 text-sm text-muted">Extracted Data</h4>
-              <div className="flex justify-between mb-4"><span className="text-sm text-muted">PO Number:</span><span className="text-sm font-medium">{inv.po_number || '-'}</span></div>
-              <div className="flex justify-between mb-4"><span className="text-sm text-muted">Tax Amount:</span><span className="text-sm font-medium">{inv.tax_amount ? `$${inv.tax_amount}` : '-'}</span></div>
-              <div className="flex justify-between"><span className="text-sm text-muted">SAP Match:</span><span className="text-sm font-medium" style={{color: inv.sap_match === 'Valid' ? 'var(--success)' : 'var(--warning)'}}>{inv.sap_match || 'Unknown'}</span></div>
+            <div className="flex-1 p-6 bg-white/5 rounded-2xl border border-white/5">
+              <h4 className="font-semibold mb-4 text-xs text-ios-gray uppercase tracking-wider">Extracted Data</h4>
+              <div className="flex justify-between mb-3"><span className="text-sm text-ios-gray font-medium">PO Number:</span><span className="text-sm font-semibold text-white">{inv.po_number || '-'}</span></div>
+              <div className="flex justify-between mb-3"><span className="text-sm text-ios-gray font-medium">Tax Amount:</span><span className="text-sm font-semibold text-white">{inv.tax_amount ? `$${inv.tax_amount}` : '-'}</span></div>
+              <div className="flex justify-between"><span className="text-sm text-ios-gray font-medium">SAP Match:</span><span className={`text-sm font-bold ${inv.sap_match === 'Valid' ? 'text-ios-green' : 'text-ios-orange'}`}>{inv.sap_match || 'Unknown'}</span></div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-4 mt-6 pt-6" style={{borderTop: '1px solid var(--border-color)'}}>
-            <Button variant="ghost" icon={<X size={18} />} onClick={() => handleDecision(inv.id, false)}>Reject</Button>
+          <div className="flex justify-end gap-4 mt-6 pt-6 border-t border-white/5">
+            <Button variant="ghost" icon={<X size={18} />} onClick={() => handleDecision(inv.id, false)} className="hover:bg-ios-red/10 text-ios-red">Reject</Button>
             <Button variant="primary" icon={<Check size={18} />} onClick={() => handleDecision(inv.id, true)}>Approve to SAP</Button>
           </div>
         </Card>

@@ -20,24 +20,16 @@ export const Invoices: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex-col gap-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl">All Invoices</h2>
+    <div className="flex flex-col gap-6 animate-fade-in">
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-3xl font-bold text-white">All Invoices</h2>
         <div className="flex gap-4">
-          <div style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
-            <Search size={18} style={{position: 'absolute', left: '12px', color: 'var(--text-secondary)'}} />
+          <div className="relative flex items-center">
+            <Search size={18} className="absolute left-3 text-ios-gray" />
             <input 
               type="text" 
               placeholder="Search invoices..." 
-              style={{
-                background: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '8px 12px 8px 36px',
-                color: 'var(--text-primary)',
-                outline: 'none',
-                width: '250px'
-              }}
+              className="bg-white/5 border border-white/10 rounded-full pl-10 pr-4 py-2 text-white outline-none focus:ring-2 focus:ring-ios-blue/50 w-64 transition-all placeholder:text-ios-gray"
             />
           </div>
           <Button variant="secondary" icon={<Filter size={18} />}>Filter</Button>
@@ -45,48 +37,47 @@ export const Invoices: React.FC = () => {
       </div>
 
       <Card noPadding>
-        {error && <div className="p-4" style={{color: 'var(--danger)'}}>API Error: {error}</div>}
-        <table style={{width: '100%', borderCollapse: 'collapse'}}>
-          <thead style={{borderBottom: '1px solid var(--border-color)', textAlign: 'left'}}>
-            <tr>
-              <th style={{padding: '16px 24px', fontWeight: 500, color: 'var(--text-secondary)'}}>Invoice ID</th>
-              <th style={{padding: '16px 24px', fontWeight: 500, color: 'var(--text-secondary)'}}>Vendor</th>
-              <th style={{padding: '16px 24px', fontWeight: 500, color: 'var(--text-secondary)'}}>Amount</th>
-              <th style={{padding: '16px 24px', fontWeight: 500, color: 'var(--text-secondary)'}}>Date</th>
-              <th style={{padding: '16px 24px', fontWeight: 500, color: 'var(--text-secondary)'}}>Status</th>
-              <th style={{padding: '16px 24px', fontWeight: 500, color: 'var(--text-secondary)'}}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={6} style={{padding: '24px', textAlign: 'center', color: 'var(--text-muted)'}}>Loading...</td></tr>
-            ) : invoices.length === 0 ? (
-              <tr><td colSpan={6} style={{padding: '24px', textAlign: 'center', color: 'var(--text-muted)'}}>No invoices found.</td></tr>
-            ) : invoices.map((inv, i) => (
-              <tr key={i} style={{borderBottom: '1px solid var(--glass-border)'}}>
-                <td style={{padding: '16px 24px', fontWeight: 500}}>{inv.id}</td>
-                <td style={{padding: '16px 24px'}}>{inv.vendor_name || inv.vendor_id || '-'}</td>
-                <td style={{padding: '16px 24px'}}>{inv.amount ? `$${inv.amount.toFixed(2)}` : '-'}</td>
-                <td style={{padding: '16px 24px', color: 'var(--text-secondary)'}}>{inv.date || '-'}</td>
-                <td style={{padding: '16px 24px'}}>
-                  <span style={{
-                    background: inv.status === 'Approved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                    color: inv.status === 'Approved' ? 'var(--success)' : 'var(--warning)',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600
-                  }}>
-                    {inv.status}
-                  </span>
-                </td>
-                <td style={{padding: '16px 24px'}}>
-                  <Button variant="ghost" size="sm" icon={<Eye size={16} />}>View</Button>
-                </td>
+        {error && <div className="p-4 text-ios-red font-medium">API Error: {error}</div>}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="border-b border-white/5 bg-white/5">
+              <tr>
+                <th className="px-6 py-4 font-semibold text-xs tracking-wide uppercase text-ios-gray">Invoice ID</th>
+                <th className="px-6 py-4 font-semibold text-xs tracking-wide uppercase text-ios-gray">Vendor</th>
+                <th className="px-6 py-4 font-semibold text-xs tracking-wide uppercase text-ios-gray">Amount</th>
+                <th className="px-6 py-4 font-semibold text-xs tracking-wide uppercase text-ios-gray">Date</th>
+                <th className="px-6 py-4 font-semibold text-xs tracking-wide uppercase text-ios-gray">Status</th>
+                <th className="px-6 py-4 font-semibold text-xs tracking-wide uppercase text-ios-gray">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {loading ? (
+                <tr><td colSpan={6} className="p-8 text-center text-ios-gray">Loading...</td></tr>
+              ) : invoices.length === 0 ? (
+                <tr><td colSpan={6} className="p-8 text-center text-ios-gray">No invoices found.</td></tr>
+              ) : invoices.map((inv, i) => (
+                <tr key={i} className="hover:bg-white/5 transition-colors cursor-pointer group">
+                  <td className="px-6 py-4 font-semibold text-white">{inv.id}</td>
+                  <td className="px-6 py-4 text-ios-gray font-medium">{inv.vendor_name || inv.vendor_id || '-'}</td>
+                  <td className="px-6 py-4 font-bold text-white">{inv.amount ? `$${inv.amount.toLocaleString()}` : '-'}</td>
+                  <td className="px-6 py-4 text-ios-gray font-medium">{inv.date || '-'}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide ${
+                      inv.status === 'Approved' 
+                        ? 'bg-ios-green/10 text-ios-green' 
+                        : 'bg-ios-orange/10 text-ios-orange'
+                    }`}>
+                      {inv.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Button variant="ghost" size="sm" icon={<Eye size={16} />}>View</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
     </div>
   );

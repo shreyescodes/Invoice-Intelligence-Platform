@@ -11,11 +11,6 @@ src/core/observability.py
 src/core/security.py
 src/etl/cosmos_to_snowflake.py
 src/etl/sync.py
-src/functions/activities/extract_document.py
-src/functions/activities/post_to_sap.py
-src/functions/activities/score_anomaly.py
-src/functions/activities/validate_po_sap.py
-src/functions/orchestrators/invoice_orchestrator.py
 src/invoice_intelligence_platform.egg-info/PKG-INFO
 src/invoice_intelligence_platform.egg-info/SOURCES.txt
 src/invoice_intelligence_platform.egg-info/dependency_links.txt
