@@ -3,6 +3,7 @@
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, UploadFile
+from starlette.concurrency import run_in_threadpool
 
 from src.api.schemas.invoice import InvoiceRecord, InvoiceStatus, InvoiceUploadResponse
 from src.core.db import get_invoices_container, get_raw_invoices_container
@@ -18,7 +19,7 @@ async def upload_invoice(file: UploadFile) -> InvoiceUploadResponse:
     blob_path = f"raw/{invoice_id}.pdf"
     blob_client = blob_container.get_blob_client(blob_path)
     file_content = await file.read()
-    blob_client.upload_blob(file_content, overwrite=True)
+    await run_in_threadpool(blob_client.upload_blob, file_content, overwrite=True)
     
     # Initialize record as processing
     record = InvoiceRecord(
@@ -31,7 +32,7 @@ async def upload_invoice(file: UploadFile) -> InvoiceUploadResponse:
     
     # Save to Cosmos DB initially
     container = get_invoices_container()
-    container.create_item(body=record.model_dump(mode='json'))
+    await run_in_threadpool(container.create_item, body=record.model_dump(mode='json'))
     
     import logging
 
@@ -41,13 +42,21 @@ async def upload_invoice(file: UploadFile) -> InvoiceUploadResponse:
     orchestration_id = f"ORCH-{uuid4().hex}"
     
     try:
+        from src.core.config import get_settings
+        settings = get_settings()
         # Trigger Durable Functions orchestrator with the invoice_id as the orchestration instance ID
-        orchestrator_url = f"http://localhost:7071/api/orchestrators/invoice_orchestrator/{invoice_id}"
+        orchestrator_url = f"{settings.orchestrator_base_url}/orchestrators/invoice_orchestrator/{invoice_id}"
+        headers = {}
+        if settings.orchestrator_host_key:
+            headers["x-functions-key"] = settings.orchestrator_host_key
+
         async with httpx.AsyncClient() as client:
-            resp = await client.post(orchestrator_url, json=str(invoice_id))
+            resp = await client.post(orchestrator_url, json=str(invoice_id), headers=headers)
             if resp.status_code in (200, 202):
                 instance_data = resp.json()
                 orchestration_id = instance_data.get("id", orchestration_id)
+            else:
+                logger.warning(f"Orchestrator returned status {resp.status_code}: {resp.text}")
     except Exception as e:
         logger.warning(f"Failed to trigger Azure Functions orchestrator (is it running?): {e}")
     
@@ -64,11 +73,14 @@ async def get_invoice(invoice_id: UUID) -> InvoiceRecord:
     query = "SELECT * FROM c WHERE c.id = @id"
     parameters = [{"name": "@id", "value": str(invoice_id)}]
     
-    items = list(container.query_items(
-        query=query,
-        parameters=parameters,
-        enable_cross_partition_query=True
-    ))
+    def fetch_items():
+        return list(container.query_items(
+            query=query,
+            parameters=parameters,
+            enable_cross_partition_query=True
+        ))
+        
+    items = await run_in_threadpool(fetch_items)
     
     if not items:
         raise HTTPException(status_code=404, detail="Invoice not found")
@@ -94,11 +106,14 @@ async def list_invoices(status: str | None = None, vendor_id: str | None = None)
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
         
-    items = list(container.query_items(
-        query=query,
-        parameters=parameters,
-        enable_cross_partition_query=True
-    ))
+    def fetch_list():
+        return list(container.query_items(
+            query=query,
+            parameters=parameters,
+            enable_cross_partition_query=True
+        ))
+        
+    items = await run_in_threadpool(fetch_list)
     
     records = [InvoiceRecord.model_validate(i) for i in items]
     records.sort(key=lambda x: x.created_at, reverse=True)

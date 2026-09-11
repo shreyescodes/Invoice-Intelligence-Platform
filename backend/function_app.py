@@ -15,10 +15,10 @@ except ImportError:
 from src.core.config import get_settings
 from src.core.db import get_invoices_container
 from src.core.extraction import extract_invoice_data
-from src.etl.sync import sync_invoice_to_warehouse
+# sync_invoice_to_warehouse import removed as it is now used directly in cosmos_to_snowflake.py
 from src.ml.anomaly import detector
 
-app = df.DFApp(http_auth_level=func.AuthLevel.ANONYMOUS) if df else None
+app = df.DFApp(http_auth_level=func.AuthLevel.FUNCTION) if df else None
 
 if app:
     @app.orchestration_trigger(context_name="context")
@@ -43,16 +43,26 @@ if app:
             "validation": validation_result
         })
         
-        # Pause execution until Human decides
-        decision = yield context.wait_for_external_event("ApprovalDecision")
+        from datetime import timedelta
+        
+        # Pause execution until Human decides or 7 days elapse
+        approval_task = context.wait_for_external_event("ApprovalDecision")
+        expiration_task = context.create_timer(context.current_utc_datetime + timedelta(days=7))
+        
+        winner = yield context.task_any([approval_task, expiration_task])
+        
+        if winner == expiration_task:
+            yield context.call_activity("update_status", {"invoice_id": invoice_id, "status": "REJECTED"})
+            return "Orchestration auto-rejected due to timeout"
+            
+        decision = winner.result
         
         # 5. Handle Decision
         if decision.get("approve"):
             yield context.call_activity("update_status", {"invoice_id": invoice_id, "status": "APPROVED"})
             # 6. SAP Write-back
             yield context.call_activity("post_to_sap", extracted_data)
-            # 7. Data Warehouse Sync
-            yield context.call_activity("sync_to_dw", invoice_id)
+            # 7. Data Warehouse Sync is now handled asynchronously by the etl_batch_sync timer trigger
         else:
             yield context.call_activity("update_status", {"invoice_id": invoice_id, "status": "REJECTED"})
             
@@ -61,12 +71,13 @@ if app:
 
     @app.activity_trigger(input_name="invoiceId")
     def extract_invoice(invoiceId: str) -> dict:
-        settings = get_settings()
-        # Mock SAS URL for local testing (in production, use managed identity)
-        blob_url = f"http://127.0.0.1:10000/devstoreaccount1/{settings.blob_container_raw_invoices}/raw/{invoiceId}.pdf"
-        
+        from src.core.db import get_raw_invoices_container
         try:
-            extracted = extract_invoice_data(blob_url)
+            container = get_raw_invoices_container()
+            blob_client = container.get_blob_client(f"raw/{invoiceId}.pdf")
+            file_bytes = blob_client.download_blob().readall()
+            
+            extracted = extract_invoice_data(file_bytes)
             return extracted.model_dump(mode='json')
         except Exception as e:
             logging.error(f"Extraction failed: {e}")
@@ -125,10 +136,11 @@ if app:
             container.replace_item(item=item, body=item)
         return "ok"
 
-    @app.activity_trigger(input_name="invoiceId")
-    def sync_to_dw(invoiceId: str) -> str:
-        sync_invoice_to_warehouse(invoiceId)
-        return "ok"
+    # The synchronous sync_to_dw activity was removed in favor of batch processing
+    # @app.activity_trigger(input_name="invoiceId")
+    # def sync_to_dw(invoiceId: str) -> str:
+    #     sync_invoice_to_warehouse(invoiceId)
+    #     return "ok"
         
     @app.activity_trigger(input_name="extractedData")
     def post_to_sap(extractedData: dict) -> str:
@@ -153,3 +165,18 @@ if app:
             return func.HttpResponse(f"Event ApprovalDecision raised for {invoice_id}")
         except Exception as e:
             return func.HttpResponse(f"Error: {e}", status_code=500)
+
+    @app.timer_trigger(schedule="0 */15 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+    def etl_batch_sync(myTimer: func.TimerRequest) -> None:
+        if myTimer.past_due:
+            logging.info('The timer is past due!')
+        logging.info('Executing batch ETL sync to Snowflake Data Warehouse.')
+        from src.etl.cosmos_to_snowflake import run_incremental_load
+        from datetime import datetime, timedelta
+        
+        # Determine watermark (last 15 mins)
+        watermark = (datetime.utcnow() - timedelta(minutes=15)).isoformat()
+        try:
+            run_incremental_load(watermark)
+        except Exception as e:
+            logging.error(f"Batch ETL failed: {e}")

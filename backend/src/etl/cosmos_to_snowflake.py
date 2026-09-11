@@ -29,11 +29,90 @@ credits — this one setting is the difference between a $400 credit
 lasting your whole build and draining in a weekend.
 """
 
+import logging
 from typing import Any
+import snowflake.connector
 
+from src.core.config import get_settings
+from src.core.db import get_invoices_container
+
+logger = logging.getLogger(__name__)
 
 def run_incremental_load(since_watermark: str) -> dict[str, Any]:
-    raise NotImplementedError("Build this in phase 4 — see module docstring")
+    """Runs a batch ETL sync of invoices updated since the watermark."""
+    settings = get_settings()
+    
+    if not settings.using_real_snowflake:
+        logger.info(f"Skipping Snowflake batch ETL sync since using_real_snowflake is false.")
+        return {"status": "skipped", "reason": "Credentials not set"}
+
+    container = get_invoices_container()
+    
+    query = "SELECT * FROM c WHERE c.updated_at >= @watermark"
+    items = list(container.query_items(
+        query=query,
+        parameters=[{"name": "@watermark", "value": since_watermark}],
+        enable_cross_partition_query=True
+    ))
+    
+    if not items:
+        logger.info("No new or updated invoices found in Cosmos DB since watermark.")
+        return {"status": "success", "processed_count": 0}
+        
+    try:
+        with snowflake.connector.connect(
+            user=settings.snowflake_user,
+            password=settings.snowflake_password,
+            account=settings.snowflake_account,
+            warehouse=settings.snowflake_warehouse,
+            database=settings.snowflake_database,
+            schema="PUBLIC"
+        ) as conn:
+            with conn.cursor() as cursor:
+                for invoice in items:
+                    extracted = invoice.get("extracted", {})
+                    vendor_id = invoice.get("vendor_id")
+                    vendor_name = extracted.get("vendor_name", "Unknown")
+                    
+                    cursor.execute(
+                        """
+                        MERGE INTO dim_vendor target
+                        USING (SELECT %s AS vendor_id, %s AS vendor_name) source
+                        ON target.vendor_id = source.vendor_id
+                        WHEN MATCHED THEN UPDATE SET vendor_name = source.vendor_name
+                        WHEN NOT MATCHED THEN INSERT (vendor_id, vendor_name) VALUES (source.vendor_id, source.vendor_name)
+                        """,
+                        (vendor_id, vendor_name)
+                    )
+                    
+                    cursor.execute(
+                        """
+                        MERGE INTO fact_invoice target
+                        USING (SELECT %s AS invoice_id, %s AS vendor_id, %s AS invoice_number, %s AS status, %s AS subtotal, %s AS tax_amount, %s AS total_amount, %s AS created_at) source
+                        ON target.invoice_id = source.invoice_id
+                        WHEN MATCHED THEN UPDATE SET status = source.status, subtotal = source.subtotal, tax_amount = source.tax_amount, total_amount = source.total_amount
+                        WHEN NOT MATCHED THEN INSERT (invoice_id, vendor_id, invoice_number, status, subtotal, tax_amount, total_amount, created_at) 
+                        VALUES (source.invoice_id, source.vendor_id, source.invoice_number, source.status, source.subtotal, source.tax_amount, source.total_amount, source.created_at)
+                        """,
+                        (
+                            str(invoice.get("id")),
+                            vendor_id,
+                            extracted.get("invoice_number"),
+                            invoice.get("status"),
+                            float(extracted.get("subtotal", 0)),
+                            float(extracted.get("tax_amount", 0)),
+                            float(extracted.get("total_amount", 0)),
+                            invoice.get("created_at")
+                        )
+                    )
+            conn.commit()
+            
+        logger.info(f"Successfully processed {len(items)} invoices to Snowflake.")
+        return {"status": "success", "processed_count": len(items)}
+        
+    except Exception as e:
+        logger.error(f"Failed to batch sync to Snowflake: {e}")
+        return {"status": "error", "error": str(e)}
 
 
 DIM_VENDOR_DDL = """

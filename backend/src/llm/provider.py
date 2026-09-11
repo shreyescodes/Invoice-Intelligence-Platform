@@ -69,9 +69,12 @@ def extract_json(prompt: str, *, settings: Settings | None = None) -> str:
     `response_format={"type": "json_object"}` for the models in the
     README's local-model table.
     """
+    # Ensure prompt explicitly asks for JSON
+    strict_json_prompt = prompt + "\n\nRespond ONLY with valid JSON. Do not include markdown formatting or conversational text."
+    
     client, model = get_llm_client(settings)
     response = client.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[{"role": "user", "content": strict_json_prompt}]
     )
     return response.choices[0].message.content or ""

@@ -37,12 +37,7 @@ def get_credential() -> DefaultAzureCredential:
 
 
 def get_secret(secret_name: str, settings: Settings) -> str:
-    """Fetch a secret from Key Vault via Managed Identity.
-
-    Locally, settings.key_vault_url is usually empty — fall back to
-    .env values instead (see config.py). Only exercise this path once
-    you've provisioned a real Key Vault (phase 6).
-    """
+    """Fetch a secret from Key Vault via Managed Identity."""
     if not settings.key_vault_url:
         raise RuntimeError("KEY_VAULT_URL not set — are you running locally?")
     client = SecretClient(vault_url=settings.key_vault_url, credential=get_credential())
@@ -51,22 +46,37 @@ def get_secret(secret_name: str, settings: Settings) -> str:
 
 _bearer_scheme = HTTPBearer(auto_error=False)
 
+# Setup fastapi-azure-auth scheme
+settings_cache = get_settings()
+azure_scheme = None
+if settings_cache.environment != "local":
+    try:
+        from fastapi_azure_auth import SingleTenantAzureAuthorizationBearer
+        if settings_cache.azure_client_id and settings_cache.azure_tenant_id:
+            azure_scheme = SingleTenantAzureAuthorizationBearer(
+                app_client_id=settings_cache.azure_client_id,
+                tenant_id=settings_cache.azure_tenant_id,
+                scopes={f"api://{settings_cache.azure_client_id}/user_impersonation": "user_impersonation"}
+            )
+    except ImportError:
+        pass
+
 
 async def require_user(
-    creds: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
     settings: Settings = Depends(get_settings),
+    token: dict | HTTPAuthorizationCredentials | None = Depends(azure_scheme) if azure_scheme else Depends(_bearer_scheme),
 ) -> dict:
-    """FastAPI dependency: validate an Entra ID access token.
+    """FastAPI dependency: validate an Entra ID access token."""
+    if settings.environment == "local":
+        return {"sub": "local-dev-user", "roles": ["Admin"]}
 
-    TODO(phase 6): validate `creds.credentials` as a JWT — check
-    signature against Entra ID's JWKS endpoint for your tenant, verify
-    `aud` matches settings.oauth2_audience and `iss` matches your
-    tenant's issuer, then return the decoded claims. Consider
-    `fastapi-azure-auth` (wraps this) instead of hand-rolling it.
+    if azure_scheme is None:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            "Azure Auth not configured. Verify fastapi-azure-auth is installed and AZURE_CLIENT_ID/AZURE_TENANT_ID are set."
+        )
 
-    Until this is implemented, every route using this dependency
-    should be treated as UNAUTHENTICATED — don't deploy it as-is.
-    """
-    if creds is None:
+    if not token:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing bearer token")
-    raise NotImplementedError("Wire up Entra ID token validation here")
+        
+    return token if isinstance(token, dict) else {"sub": "unknown"}

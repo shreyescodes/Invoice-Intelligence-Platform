@@ -17,14 +17,15 @@ class Settings(BaseSettings):
 
     environment: Literal["local", "dev", "prod"] = "local"
     log_level: str = "INFO"
+    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
     # Storage
-    azure_storage_connection_string: str
+    azure_storage_connection_string: str = ""
     blob_container_raw_invoices: str = "raw-invoices"
 
     # Cosmos DB
     cosmos_endpoint: str
-    cosmos_key: str
+    cosmos_key: str = ""
     cosmos_database: str = "invoice_platform"
     cosmos_container_invoices: str = "invoices"
     cosmos_container_audit: str = "audit-log"
@@ -68,6 +69,10 @@ class Settings(BaseSettings):
 
     # MLflow
     mlflow_tracking_uri: str = "http://localhost:5001"
+
+    # Orchestrator
+    orchestrator_base_url: str = "http://localhost:7071/api"
+    orchestrator_host_key: str = ""
 
     @property
     def using_real_snowflake(self) -> bool:

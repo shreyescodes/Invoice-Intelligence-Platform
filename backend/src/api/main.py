@@ -6,6 +6,7 @@ Or via docker compose: docker compose up api
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 from src.api.routers import approvals, chat, invoices
 from src.core.config import get_settings
@@ -13,15 +14,29 @@ from src.core.observability import configure_observability
 
 settings = get_settings()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if settings.environment != "local":
+        try:
+            from src.core.security import azure_scheme
+            await azure_scheme.openid_config.load_config()
+            import logging
+            logging.info("Successfully loaded Azure AD OpenID configuration keys.")
+        except Exception as e:
+            import logging
+            logging.error(f"Failed to load Azure AD OpenID keys: {e}")
+    yield
+
 app = FastAPI(
     title="Invoice Intelligence Platform",
     description="AI-powered invoice processing, validation, and analytics",
     version="0.1.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

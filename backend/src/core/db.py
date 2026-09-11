@@ -36,13 +36,11 @@ def get_invoices_container():
     client = get_cosmos_client()
     settings = get_settings()
     
-    database = client.create_database_if_not_exists(id=settings.cosmos_database)
+    # We assume the database and container are already created by IaC.
+    # We just fetch the client reference directly, which involves zero network I/O.
+    database = client.get_database_client(settings.cosmos_database)
+    container = database.get_container_client(settings.cosmos_container_invoices)
     
-    container = database.create_container_if_not_exists(
-        id=settings.cosmos_container_invoices,
-        partition_key=PartitionKey(path="/vendor_id"),
-        offer_throughput=400
-    )
     return container
 
 def get_blob_service_client() -> BlobServiceClient:
@@ -61,7 +59,6 @@ def get_raw_invoices_container():
     client = get_blob_service_client()
     settings = get_settings()
     
+    # Just get the client reference without checking exists() to save a network roundtrip.
     container_client = client.get_container_client(settings.blob_container_raw_invoices)
-    if not container_client.exists():
-        container_client.create_container()
     return container_client

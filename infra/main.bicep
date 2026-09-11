@@ -12,6 +12,9 @@ var functionAppName = 'func-inv-${environmentName}-${suffix}'
 var appInsightsName = 'appi-inv-${environmentName}-${suffix}'
 var keyVaultName = 'kv-inv-${environmentName}-${suffix}'
 var logAnalyticsWorkspaceName = 'log-inv-${environmentName}-${suffix}'
+var appServicePlanName = 'asp-inv-${environmentName}-${suffix}'
+var webAppName = 'api-inv-${environmentName}-${suffix}'
+var staticWebAppName = 'ui-inv-${environmentName}-${suffix}'
 
 // Storage Account
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
@@ -91,8 +94,8 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
     siteConfig: {
       appSettings: [
         {
-          name: 'AzureWebJobsStorage'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
+          name: 'AzureWebJobsStorage__accountName'
+          value: storageAccount.name
         }
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -116,6 +119,130 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
   }
 }
 
+// App Service Plan (Linux)
+resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
+  name: appServicePlanName
+  location: location
+  sku: {
+    name: 'B1'
+  }
+  kind: 'linux'
+  properties: {
+    reserved: true
+  }
+}
+
+// Web App (FastAPI Backend)
+resource webApp 'Microsoft.Web/sites@2022-09-01' = {
+  name: webAppName
+  location: location
+  kind: 'app,linux'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    serverFarmId: appServicePlan.id
+    siteConfig: {
+      linuxFxVersion: 'PYTHON|3.11'
+      appSettings: [
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appInsights.properties.InstrumentationKey
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appInsights.properties.ConnectionString
+        }
+        {
+          name: 'ENVIRONMENT'
+          value: environmentName
+        }
+      ]
+    }
+  }
+}
+
+// Static Web App (React Frontend)
+resource staticWebApp 'Microsoft.Web/staticSites@2022-09-01' = {
+  name: staticWebAppName
+  location: location
+  sku: {
+    name: 'Free'
+    tier: 'Free'
+  }
+  properties: {}
+}
+
 output functionAppId string = functionApp.id
 output functionAppPrincipalId string = functionApp.identity.principalId
+output webAppId string = webApp.id
+output webAppPrincipalId string = webApp.identity.principalId
 output cosmosDbEndpoint string = cosmosDbAccount.properties.documentEndpoint
+
+// --- Role Assignments for Managed Identity ---
+
+var storageBlobDataContributorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
+var keyVaultSecretsUserRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
+var cosmosDbDataContributorRole = '00000000-0000-0000-0000-000000000002'
+
+resource storageRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storageAccount.id, functionApp.id, storageBlobDataContributorRole)
+  scope: storageAccount
+  properties: {
+    roleDefinitionId: storageBlobDataContributorRole
+    principalId: functionApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource keyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(keyVault.id, functionApp.id, keyVaultSecretsUserRole)
+  scope: keyVault
+  properties: {
+    roleDefinitionId: keyVaultSecretsUserRole
+    principalId: functionApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource cosmosRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
+  name: guid(cosmosDbAccount.id, functionApp.id, cosmosDbDataContributorRole)
+  parent: cosmosDbAccount
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions', cosmosDbAccount.name, cosmosDbDataContributorRole)
+    principalId: functionApp.identity.principalId
+    scope: cosmosDbAccount.id
+  }
+}
+
+// --- Role Assignments for API Web App Managed Identity ---
+
+resource webAppStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storageAccount.id, webApp.id, storageBlobDataContributorRole)
+  scope: storageAccount
+  properties: {
+    roleDefinitionId: storageBlobDataContributorRole
+    principalId: webApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource webAppKeyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(keyVault.id, webApp.id, keyVaultSecretsUserRole)
+  scope: keyVault
+  properties: {
+    roleDefinitionId: keyVaultSecretsUserRole
+    principalId: webApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource webAppCosmosRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
+  name: guid(cosmosDbAccount.id, webApp.id, cosmosDbDataContributorRole)
+  parent: cosmosDbAccount
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions', cosmosDbAccount.name, cosmosDbDataContributorRole)
+    principalId: webApp.identity.principalId
+    scope: cosmosDbAccount.id
+  }
+}

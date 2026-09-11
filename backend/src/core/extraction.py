@@ -24,20 +24,21 @@ def get_doc_intel_client() -> DocumentIntelligenceClient:
         credential=AzureKeyCredential(settings.document_intelligence_key)
     )
 
-def extract_invoice_data(blob_url: str) -> ExtractedInvoice:
+def extract_invoice_data(file_bytes: bytes) -> ExtractedInvoice:
     """Extract invoice data using pre-built invoice model."""
-    logger.info(f"Extracting invoice data from {blob_url}")
+    logger.info("Extracting invoice data from raw bytes")
     client = get_doc_intel_client()
     
     poller = client.begin_analyze_document(
         "prebuilt-invoice", 
-        AnalyzeDocumentRequest(url_source=blob_url)
+        AnalyzeDocumentRequest(bytes_source=file_bytes)
     )
     
     result = poller.result()
     
     vendor_name = "Unknown Vendor"
     invoice_number = "UNKNOWN"
+    po_number = None
     invoice_date = datetime.utcnow().date()
     subtotal = Decimal("0.00")
     total_amount = Decimal("0.00")
@@ -55,6 +56,9 @@ def extract_invoice_data(blob_url: str) -> ExtractedInvoice:
                 
             if "InvoiceId" in fields and fields["InvoiceId"].value_string:
                 invoice_number = fields["InvoiceId"].value_string
+
+            if "PurchaseOrder" in fields and fields["PurchaseOrder"].value_string:
+                po_number = fields["PurchaseOrder"].value_string
                 
             if "InvoiceDate" in fields and fields["InvoiceDate"].value_date:
                 invoice_date = fields["InvoiceDate"].value_date
@@ -93,14 +97,14 @@ def extract_invoice_data(blob_url: str) -> ExtractedInvoice:
                 if "InvoiceId" in data and data["InvoiceId"]:
                     invoice_number = data["InvoiceId"]
                 if "PurchaseOrder" in data and data["PurchaseOrder"]:
-                    # Assign to PO number but since it's not currently tracked as a local var here, let's just ensure we return it.
-                    pass
+                    po_number = data["PurchaseOrder"]
         except Exception as e:
             logger.warning(f"LLM cleanup failed: {e}")
 
     return ExtractedInvoice(
         vendor_name=vendor_name,
         invoice_number=invoice_number,
+        po_number=po_number,
         invoice_date=invoice_date,
         subtotal=subtotal,
         total_amount=total_amount,

@@ -10,6 +10,7 @@ dependencies = [
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
     "httpx>=0.27",
+    "fastapi-azure-auth>=5.0.0",
     # Azure SDKs
     "azure-functions>=1.21",
     "azure-functions-durable>=1.2.7",
