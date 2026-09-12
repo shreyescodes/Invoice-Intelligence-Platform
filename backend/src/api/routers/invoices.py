@@ -27,10 +27,12 @@ async def upload_invoice(file: UploadFile) -> InvoiceUploadResponse:
         raise HTTPException(status_code=400, detail="File is empty.")
 
     invoice_id = uuid4()
+    import mimetypes
+    ext = mimetypes.guess_extension(file.content_type) or ".pdf"
     
     # Upload to blob storage
     blob_container = get_raw_invoices_container()
-    blob_path = f"raw/{invoice_id}.pdf"
+    blob_path = f"raw/{invoice_id}{ext}"
     blob_client = blob_container.get_blob_client(blob_path)
     
     await run_in_threadpool(blob_client.upload_blob, file_content, overwrite=True)

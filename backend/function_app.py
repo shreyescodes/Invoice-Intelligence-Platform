@@ -71,10 +71,20 @@ if app:
 
     @app.activity_trigger(input_name="invoiceId")
     def extract_invoice(invoiceId: str) -> dict:
-        from src.core.db import get_raw_invoices_container
+        from src.core.db import get_raw_invoices_container, get_invoices_container
         try:
+            cosmos = get_invoices_container()
+            items = list(cosmos.query_items(
+                query="SELECT * FROM c WHERE c.id = @id",
+                parameters=[{"name": "@id", "value": invoiceId}],
+                enable_cross_partition_query=True
+            ))
+            if not items:
+                raise ValueError(f"Invoice {invoiceId} not found in DB")
+            blob_path = items[0]["blob_path"]
+
             container = get_raw_invoices_container()
-            blob_client = container.get_blob_client(f"raw/{invoiceId}.pdf")
+            blob_client = container.get_blob_client(blob_path)
             file_bytes = blob_client.download_blob().readall()
             
             extracted = extract_invoice_data(file_bytes)

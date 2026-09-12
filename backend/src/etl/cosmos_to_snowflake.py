@@ -120,7 +120,7 @@ def run_incremental_load(since_watermark: str) -> dict[str, Any]:
                             float(extracted.get("subtotal", 0)),
                             float(extracted.get("tax_amount", 0)),
                             float(extracted.get("total_amount", 0)),
-                            float(invoice.get("anomaly_score", 0.0)),
+                            float(invoice.get("anomaly_score") or 0.0),
                             invoice.get("created_at")
                         )
                     )
