@@ -15,6 +15,7 @@ except ImportError:
 from src.core.config import get_settings
 from src.core.db import get_invoices_container
 from src.core.extraction import extract_invoice_data
+
 # sync_invoice_to_warehouse import removed as it is now used directly in cosmos_to_snowflake.py
 from src.ml.anomaly import detector
 
@@ -71,7 +72,7 @@ if app:
 
     @app.activity_trigger(input_name="invoiceId")
     def extract_invoice(invoiceId: str) -> dict:
-        from src.core.db import get_raw_invoices_container, get_invoices_container
+        from src.core.db import get_invoices_container, get_raw_invoices_container
         try:
             cosmos = get_invoices_container()
             items = list(cosmos.query_items(
@@ -192,8 +193,9 @@ if app:
         if myTimer.past_due:
             logging.info('The timer is past due!')
         logging.info('Executing batch ETL sync to Snowflake Data Warehouse.')
-        from src.etl.cosmos_to_snowflake import run_incremental_load
         from datetime import datetime, timedelta
+
+        from src.etl.cosmos_to_snowflake import run_incremental_load
         
         # Determine watermark (last 15 mins)
         watermark = (datetime.utcnow() - timedelta(minutes=15)).isoformat()

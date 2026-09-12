@@ -31,6 +31,7 @@ lasting your whole build and draining in a weekend.
 
 import logging
 from typing import Any
+
 import snowflake.connector
 
 from src.core.config import get_settings
@@ -43,7 +44,7 @@ def run_incremental_load(since_watermark: str) -> dict[str, Any]:
     settings = get_settings()
     
     if not settings.using_real_snowflake:
-        logger.info(f"Skipping Snowflake batch ETL sync since using_real_snowflake is false.")
+        logger.info("Skipping Snowflake batch ETL sync since using_real_snowflake is false.")
         return {"status": "skipped", "reason": "Credentials not set"}
 
     container = get_invoices_container()

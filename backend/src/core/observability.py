@@ -70,7 +70,8 @@ def configure_observability(app: FastAPI, settings: Settings) -> None:
     # Fix: Import require_user here (importing at module level would create a
     # circular import since security.py imports config.py which is also used here).
     from fastapi import Depends, Response
-    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
     from src.core.security import require_user
 
     @app.get("/metrics", include_in_schema=False, dependencies=[Depends(require_user)])
