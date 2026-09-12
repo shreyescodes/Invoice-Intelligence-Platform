@@ -29,6 +29,18 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
 }
 
+// Blob Storage Services
+resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
+  name: 'default'
+  parent: storageAccount
+}
+
+// Raw Invoices Container
+resource rawInvoicesContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+  name: 'raw-invoices'
+  parent: blobServices
+}
+
 // Log Analytics
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: logAnalyticsWorkspaceName
@@ -64,6 +76,37 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
         failoverPriority: 0
       }
     ]
+  }
+}
+
+// Cosmos DB Database
+resource cosmosDbDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-05-15' = {
+  name: 'InvoiceDatabase'
+  parent: cosmosDbAccount
+  properties: {
+    resource: {
+      id: 'InvoiceDatabase'
+    }
+  }
+}
+
+// Cosmos DB Container
+resource cosmosDbContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-05-15' = {
+  name: 'InvoicesContainer'
+  parent: cosmosDbDatabase
+  properties: {
+    resource: {
+      id: 'InvoicesContainer'
+      partitionKey: {
+        paths: [
+          '/vendor_id'
+        ]
+        kind: 'Hash'
+      }
+    }
+    options: {
+      throughput: 400
+    }
   }
 }
 
@@ -177,11 +220,14 @@ output functionAppId string = functionApp.id
 output functionAppPrincipalId string = functionApp.identity.principalId
 output webAppId string = webApp.id
 output webAppPrincipalId string = webApp.identity.principalId
+output webAppHostName string = webApp.properties.defaultHostName
 output cosmosDbEndpoint string = cosmosDbAccount.properties.documentEndpoint
 
 // --- Role Assignments for Managed Identity ---
 
 var storageBlobDataContributorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
+var storageTableDataContributorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3')
+var storageQueueDataContributorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '974c5e8b-45b9-4653-ba55-5f855dd0fb88')
 var keyVaultSecretsUserRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
 var cosmosDbDataContributorRole = '00000000-0000-0000-0000-000000000002'
 
@@ -190,6 +236,26 @@ resource storageRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-
   scope: storageAccount
   properties: {
     roleDefinitionId: storageBlobDataContributorRole
+    principalId: functionApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource storageTableRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storageAccount.id, functionApp.id, storageTableDataContributorRole)
+  scope: storageAccount
+  properties: {
+    roleDefinitionId: storageTableDataContributorRole
+    principalId: functionApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource storageQueueRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storageAccount.id, functionApp.id, storageQueueDataContributorRole)
+  scope: storageAccount
+  properties: {
+    roleDefinitionId: storageQueueDataContributorRole
     principalId: functionApp.identity.principalId
     principalType: 'ServicePrincipal'
   }
