@@ -12,13 +12,27 @@ router = APIRouter()
 
 @router.post("/upload", response_model=InvoiceUploadResponse)
 async def upload_invoice(file: UploadFile) -> InvoiceUploadResponse:
+    # Strict Audit Fix: File Type Validation
+    allowed_types = ["application/pdf", "image/jpeg", "image/png"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Only PDF, JPEG, and PNG are allowed.")
+
+    # Strict Audit Fix: File Size Validation (Max 10 MB)
+    MAX_FILE_SIZE = 10 * 1024 * 1024
+    file_content = await file.read()
+    if len(file_content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
+        
+    if len(file_content) == 0:
+        raise HTTPException(status_code=400, detail="File is empty.")
+
     invoice_id = uuid4()
     
     # Upload to blob storage
     blob_container = get_raw_invoices_container()
     blob_path = f"raw/{invoice_id}.pdf"
     blob_client = blob_container.get_blob_client(blob_path)
-    file_content = await file.read()
+    
     await run_in_threadpool(blob_client.upload_blob, file_content, overwrite=True)
     
     # Initialize record as processing

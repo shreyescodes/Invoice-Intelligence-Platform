@@ -15,6 +15,7 @@ var logAnalyticsWorkspaceName = 'log-inv-${environmentName}-${suffix}'
 var appServicePlanName = 'asp-inv-${environmentName}-${suffix}'
 var webAppName = 'api-inv-${environmentName}-${suffix}'
 var staticWebAppName = 'ui-inv-${environmentName}-${suffix}'
+var docIntelligenceName = 'docintel-inv-${environmentName}-${suffix}'
 
 // Storage Account
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
@@ -39,6 +40,22 @@ resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01
 resource rawInvoicesContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
   name: 'raw-invoices'
   parent: blobServices
+}
+
+// Azure AI Document Intelligence (Form Recognizer)
+resource docIntelligence 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
+  name: docIntelligenceName
+  location: location
+  kind: 'FormRecognizer'
+  sku: {
+    name: 'S0'
+  }
+  properties: {
+    publicNetworkAccess: 'Enabled'
+    networkAcls: {
+      defaultAction: 'Allow'
+    }
+  }
 }
 
 // Log Analytics
@@ -156,6 +173,22 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
           name: 'FUNCTIONS_WORKER_RUNTIME'
           value: 'python'
         }
+        {
+          name: 'KEY_VAULT_URL'
+          value: keyVault.properties.vaultUri
+        }
+        {
+          name: 'DOCUMENT_INTELLIGENCE_ENDPOINT'
+          value: docIntelligence.properties.endpoint
+        }
+        {
+          name: 'COSMOS_ENDPOINT'
+          value: cosmosDbAccount.properties.documentEndpoint
+        }
+        {
+          name: 'AZURE_STORAGE_CONNECTION_STRING'
+          value: 'https://${storageAccount.name}.blob.core.windows.net'
+        }
       ]
       linuxFxVersion: 'Python|3.11'
     }
@@ -200,6 +233,22 @@ resource webApp 'Microsoft.Web/sites@2022-09-01' = {
           name: 'ENVIRONMENT'
           value: environmentName
         }
+        {
+          name: 'KEY_VAULT_URL'
+          value: keyVault.properties.vaultUri
+        }
+        {
+          name: 'DOCUMENT_INTELLIGENCE_ENDPOINT'
+          value: docIntelligence.properties.endpoint
+        }
+        {
+          name: 'COSMOS_ENDPOINT'
+          value: cosmosDbAccount.properties.documentEndpoint
+        }
+        {
+          name: 'AZURE_STORAGE_CONNECTION_STRING'
+          value: 'https://${storageAccount.name}.blob.core.windows.net'
+        }
       ]
     }
   }
@@ -222,6 +271,43 @@ output webAppId string = webApp.id
 output webAppPrincipalId string = webApp.identity.principalId
 output webAppHostName string = webApp.properties.defaultHostName
 output cosmosDbEndpoint string = cosmosDbAccount.properties.documentEndpoint
+output docIntelligenceEndpoint string = docIntelligence.properties.endpoint
+output keyVaultUri string = keyVault.properties.vaultUri
+
+// Key Vault Secrets — seed placeholder secrets that operators must replace
+// with real values before the first production deployment.
+// Snowflake credentials: set these via 'az keyvault secret set' after first deploy.
+resource secretSnowflakeAccount 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  name: 'snowflake-account'
+  parent: keyVault
+  properties: {
+    value: 'REPLACE_WITH_SNOWFLAKE_ACCOUNT'
+  }
+}
+
+resource secretSnowflakeUser 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  name: 'snowflake-user'
+  parent: keyVault
+  properties: {
+    value: 'REPLACE_WITH_SNOWFLAKE_USER'
+  }
+}
+
+resource secretSnowflakePassword 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  name: 'snowflake-password'
+  parent: keyVault
+  properties: {
+    value: 'REPLACE_WITH_SNOWFLAKE_PASSWORD'
+  }
+}
+
+resource secretDocIntelKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  name: 'document-intelligence-key'
+  parent: keyVault
+  properties: {
+    value: listKeys(docIntelligence.id, '2023-05-01').key1
+  }
+}
 
 // --- Role Assignments for Managed Identity ---
 

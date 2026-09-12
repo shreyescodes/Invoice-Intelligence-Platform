@@ -115,7 +115,10 @@ class InvoiceAnomalyDetector:
         1.0 = highly anomalous
         """
         if not self._is_trained:
-            # Fallback to heuristics if untrained
+            self._load_model()
+            
+        if not self._is_trained:
+            # Fallback to heuristics if untrained and no model found in storage
             if total_amount > Decimal("50000"):
                 return 0.9  # High amount
             if tax_amount > subtotal:
