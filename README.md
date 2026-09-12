@@ -1,90 +1,38 @@
-﻿# Invoice Intelligence Platform
+# Invoice Intelligence Platform (IIP)
 
-First of all, welcome guys!
+[![Build and Deploy](https://github.com/shreyescodes/Invoice-Intelligence-Platform/actions/workflows/deploy.yml/badge.svg)](https://github.com/shreyescodes/Invoice-Intelligence-Platform/actions/workflows/deploy.yml)
+[![Python Package](https://github.com/shreyescodes/Invoice-Intelligence-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/shreyescodes/Invoice-Intelligence-Platform/actions/workflows/ci.yml)
 
-This is an AI-powered accounts-payable automation platform I built as a learning project. I am ingesting vendor invoices, extracting structured data using OCR + an LLM, validating everything against my SAP purchase orders, scoring for anomalies, routing for human approval when needed, posting back to SAP, and finally feeding a Snowflake-backed analytics layer.
+The **Invoice Intelligence Platform (IIP)** is an enterprise-grade, AI-powered accounts-payable automation system. It streamlines the invoice processing lifecycle by automating data extraction, validation, anomaly detection, and ERP synchronization.
 
-I have built this as a proper enterprise-grade AP-automation platform. Kindly check the codebase to see how I have done the needful for every component.
+## 📖 Documentation
 
-## Tech Stack
+Detailed documentation is available in the `docs/` directory:
+
+- [Architecture & Design](docs/architecture.md) - System design, tech stack, and component interactions.
+- [Local Setup & Deployment](docs/setup.md) - Instructions for running the stack locally and deploying to Azure.
+- [API Reference](docs/api.md) - Documentation of the FastAPI endpoints and models.
+- [Contributing Guidelines](CONTRIBUTING.md) - Standards for contributing to the repository.
+
+## 🚀 Overview
+
+The platform ingests vendor invoices, extracts structured data utilizing OCR and Large Language Models, and validates the extracted entities against SAP purchase orders. A machine-learning anomaly detection model evaluates the transaction to determine if human intervention is required. Approved invoices are automatically synchronized back to SAP, while analytical data is pushed to a Snowflake data warehouse for business intelligence.
+
+### Core Capabilities
+
+- **Intelligent Extraction:** Combines Azure Document Intelligence with LLMs to precisely extract line items, taxes, and vendor details from unstructured PDFs.
+- **Automated Validation:** Integrates with ERP systems (SAP) to validate PO numbers, vendor existence, and financial limits.
+- **Anomaly Detection:** Utilizes an Isolation Forest ML model to score invoices for anomalous patterns, mitigating fraud and processing errors.
+- **Orchestration:** Employs Azure Durable Functions for stateful, resilient workflow execution, including manual human-in-the-loop approval wait states.
+- **Natural Language Analytics:** Features an NL-to-SQL interface powered by LLMs to query the Snowflake data warehouse using natural language.
+
+## 🛠️ Technology Stack
 
 - **Frontend:** React, Vite, TypeScript, Tailwind CSS
-- **Backend:** Python 3.12, FastAPI, Pydantic v2, Pytest 
-- **Azure Cloud:** Azure Functions (Durable Functions), Cosmos DB, Blob Storage, Key Vault, Document Intelligence, Azure OpenAI, Managed Identity, OAuth2 (Entra ID)
-- **Data & ML:** Snowflake, SQL, MLflow, scikit-learn, Azure ML 
-- **DevOps:** GitHub Actions CI/CD, OpenTelemetry, Prometheus, Grafana
+- **Backend:** Python 3.12, FastAPI, Pydantic v2
+- **Cloud (Azure):** Durable Functions, Cosmos DB, Blob Storage, Key Vault, Document Intelligence, Azure OpenAI, Managed Identity
+- **Data & ML:** Snowflake, scikit-learn, joblib
+- **DevOps:** GitHub Actions, OpenTelemetry, Prometheus, Grafana
 
-## Pre-requisites & Local Setup
-
-Kindly follow the below steps to set up the project on your local machine (zero Azure cost to start).
-
-```bash
-# 1. Clone the repo
-git clone git@github.com:shreyescodes/Invoice-Intelligence-Platform.git
-cd Invoice-Intelligence-Platform
-
-# 2. Setup environment variables
-cp .env.example .env
-
-# 3. Start the background services
-docker compose up -d azurite cosmosdb-emulator analytics-db mock-sap ollama mlflow prometheus grafana
-
-# 4. Pull a local model (see model choices below)
-docker compose exec ollama ollama pull qwen2.5:14b
-
-# 5. Setup Python backend
-cd backend
-python -m venv venv312
-venv312\Scripts\activate
-pip install -e ".[dev]" 
-
-# 6. Start the API
-uvicorn src.api.main:app --reload
-```
-
-In a separate terminal, kindly start the frontend UI:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Please find below the local URLs for testing:
-- Frontend UI: http://localhost:5173
-- API Docs: http://localhost:8000/docs
-- Mock SAP: http://localhost:8100/docs
-- Grafana: http://localhost:3000 (anonymous admin access)
-- Cosmos DB emulator: https://localhost:8081/_explorer/index.html
-
-To run backend tests, simply execute: `pytest tests/`
-To check backend linting, please run: `ruff check .`
-
-## Local-first Model Choices
-
-If you set `LLM_PROVIDER=ollama` in your `.env`, I am routing every LLM call through the local Ollama container. This means zero token cost and no Azure OpenAI access request needed while developing! I will swap to `azure_openai` only for the final production deployment.
-
-| Hardware | Model | Pull command |
-|---|---|---|
-| 16GB RAM, no/modest GPU | Qwen 2.5 14B | `ollama pull qwen2.5:14b` |
-| 16GB, JSON-heavy extraction | Granite 4.0 | `ollama pull granite4` |
-| 24GB+ VRAM | Qwen 3.6 27B | `ollama pull qwen3.6:27b` |
-
-## What I Have Implemented (Phases)
-
-I have successfully completed all phases of the project:
-
-1. **Foundations** - Scaffold is up and running, CI lints and tests are green.
-2. **Extraction** - Document Intelligence + LLM cleanup, `extract_document` activity is fully working.
-3. **Orchestration** - Azure Durable Functions orchestrator is in place, handling mock SAP validation and approval wait states.
-4. **Data layer** - Cosmos DB writes and ETL into the Snowflake star schema are done.
-5. **ML** - Isolation Forest anomaly model is integrated and wired into the orchestrator.
-6. **Cloud & API** - FastAPI endpoints are ready.
-7. **Chat & UI** - React frontend is built, and the NL-to-SQL chat endpoint is up and running.
-
-## Cost Notes
-
-Kindly note that everything above runs free locally! When deploying to Azure, please be aware that Snowflake and Azure OpenAI are the two genuinely billable pieces. Budget a small spend for the final demo rather than developing against them directly. 
-
-If you have any doubts, please revert back to me! 
-
-Cheers!
+## 🛡️ License
+This project is licensed under the MIT License - see the LICENSE file for details.
