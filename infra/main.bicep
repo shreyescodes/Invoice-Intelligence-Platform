@@ -98,22 +98,22 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
 
 // Cosmos DB Database
 resource cosmosDbDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-05-15' = {
-  name: 'InvoiceDatabase'
+  name: 'invoice_platform'
   parent: cosmosDbAccount
   properties: {
     resource: {
-      id: 'InvoiceDatabase'
+      id: 'invoice_platform'
     }
   }
 }
 
 // Cosmos DB Container
 resource cosmosDbContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-05-15' = {
-  name: 'InvoicesContainer'
+  name: 'invoices'
   parent: cosmosDbDatabase
   properties: {
     resource: {
-      id: 'InvoicesContainer'
+      id: 'invoices'
       partitionKey: {
         paths: [
           '/vendor_id'
