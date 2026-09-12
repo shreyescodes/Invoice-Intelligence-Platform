@@ -133,9 +133,14 @@ if app:
         
         if items:
             item = items[0]
+            old_vendor_id = item.get("vendor_id")
+            
             item["status"] = statusData["status"]
             if "extracted" in statusData:
                 item["extracted"] = statusData["extracted"]
+                new_vendor_id = statusData["extracted"].get("vendor_name", "UNKNOWN")
+                item["vendor_id"] = new_vendor_id
+                
             if "score" in statusData:
                 item["anomaly_score"] = statusData["score"]
             if "validation" in statusData:
@@ -143,7 +148,13 @@ if app:
                 if not val.get("valid"):
                     item["anomaly_reason"] = val.get("reason", "Validation failed")
                 
-            container.replace_item(item=item, body=item)
+            if old_vendor_id != item["vendor_id"]:
+                # Cosmos DB partition keys are immutable. To change the vendor_id,
+                # we must create a new document in the new partition and delete the old one.
+                container.create_item(body=item)
+                container.delete_item(item=item["id"], partition_key=old_vendor_id)
+            else:
+                container.replace_item(item=item, body=item)
         return "ok"
 
     # The synchronous sync_to_dw activity was removed in favor of batch processing
