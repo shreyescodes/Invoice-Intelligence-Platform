@@ -21,6 +21,7 @@ export interface ChatQuery {
 export interface ChatResponse {
   answer: string;
   sql_used?: string | null;
+  data?: any[] | null;
 }
 
 export interface ApprovalDecision {

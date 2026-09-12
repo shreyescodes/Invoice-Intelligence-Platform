@@ -88,11 +88,29 @@ def run_incremental_load(since_watermark: str) -> dict[str, Any]:
                     cursor.execute(
                         """
                         MERGE INTO fact_invoice target
-                        USING (SELECT %s AS invoice_id, %s AS vendor_id, %s AS invoice_number, %s AS status, %s AS subtotal, %s AS tax_amount, %s AS total_amount, %s AS created_at) source
+                        USING (
+                            SELECT 
+                                %s AS invoice_id, 
+                                (SELECT vendor_key FROM dim_vendor WHERE vendor_id = %s LIMIT 1) AS vendor_key, 
+                                %s AS invoice_number, 
+                                %s AS status, 
+                                %s AS subtotal, 
+                                %s AS tax_amount, 
+                                %s AS total_amount, 
+                                %s AS anomaly_score,
+                                %s AS created_at
+                        ) source
                         ON target.invoice_id = source.invoice_id
-                        WHEN MATCHED THEN UPDATE SET status = source.status, subtotal = source.subtotal, tax_amount = source.tax_amount, total_amount = source.total_amount
-                        WHEN NOT MATCHED THEN INSERT (invoice_id, vendor_id, invoice_number, status, subtotal, tax_amount, total_amount, created_at) 
-                        VALUES (source.invoice_id, source.vendor_id, source.invoice_number, source.status, source.subtotal, source.tax_amount, source.total_amount, source.created_at)
+                        WHEN MATCHED THEN UPDATE SET 
+                            vendor_key = source.vendor_key,
+                            invoice_number = source.invoice_number,
+                            status = source.status, 
+                            subtotal = source.subtotal, 
+                            tax_amount = source.tax_amount, 
+                            total_amount = source.total_amount,
+                            anomaly_score = source.anomaly_score
+                        WHEN NOT MATCHED THEN INSERT (invoice_id, vendor_key, invoice_number, status, subtotal, tax_amount, total_amount, anomaly_score, created_at) 
+                        VALUES (source.invoice_id, source.vendor_key, source.invoice_number, source.status, source.subtotal, source.tax_amount, source.total_amount, source.anomaly_score, source.created_at)
                         """,
                         (
                             str(invoice.get("id")),
@@ -102,6 +120,7 @@ def run_incremental_load(since_watermark: str) -> dict[str, Any]:
                             float(extracted.get("subtotal", 0)),
                             float(extracted.get("tax_amount", 0)),
                             float(extracted.get("total_amount", 0)),
+                            float(invoice.get("anomaly_score", 0.0)),
                             invoice.get("created_at")
                         )
                     )
@@ -128,12 +147,13 @@ FACT_INVOICE_DDL = """
 CREATE TABLE IF NOT EXISTS fact_invoice (
     invoice_id VARCHAR PRIMARY KEY,
     vendor_key INTEGER REFERENCES dim_vendor(vendor_key),
-    invoice_date DATE,
+    invoice_number VARCHAR,
     subtotal DECIMAL(18,2),
     tax_amount DECIMAL(18,2),
     total_amount DECIMAL(18,2),
     anomaly_score FLOAT,
     status VARCHAR,
+    created_at TIMESTAMP,
     loaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 """

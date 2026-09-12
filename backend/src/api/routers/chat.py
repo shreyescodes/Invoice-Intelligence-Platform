@@ -37,6 +37,7 @@ class ChatQuery(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     sql_used: str | None = None
+    data: list[dict] | None = None
 
 
 @router.post("", response_model=ChatResponse)
@@ -62,15 +63,40 @@ async def ask(query: ChatQuery) -> ChatResponse:
         )
         sql_query = response.choices[0].message.content.strip()
         
-        # In Phase 6, we will execute this against Snowflake/Postgres.
-        # For now, we return the generated SQL to the frontend.
+        # Execute against Snowflake
+        query_data = []
+        if settings.using_real_snowflake:
+            import snowflake.connector
+            try:
+                with snowflake.connector.connect(
+                    user=settings.snowflake_user,
+                    password=settings.snowflake_password,
+                    account=settings.snowflake_account,
+                    warehouse=settings.snowflake_warehouse,
+                    database=settings.snowflake_database,
+                    schema="PUBLIC"
+                ) as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute(sql_query)
+                        if cursor.description:
+                            columns = [col[0] for col in cursor.description]
+                            query_data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            except Exception as sql_e:
+                return ChatResponse(
+                    answer=f"I generated the SQL, but execution failed: {str(sql_e)}",
+                    sql_used=sql_query,
+                    data=None
+                )
+        
         return ChatResponse(
-            answer="I translated your question into a SQL query. (Actual database execution is mocked until Phase 6 data warehouse is built).",
-            sql_used=sql_query
+            answer="Here is the data answering your question based on the live analytical warehouse.",
+            sql_used=sql_query,
+            data=query_data
         )
     except Exception as e:
         # Graceful fallback if Ollama isn't running locally
         return ChatResponse(
             answer=f"Could not connect to the local LLM to answer this. Is Ollama running? Error: {str(e)}",
-            sql_used=None
+            sql_used=None,
+            data=None
         )
