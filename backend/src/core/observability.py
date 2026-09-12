@@ -32,20 +32,24 @@ def configure_observability(app: FastAPI, settings: Settings) -> None:
     # --- Tracing ---
     provider = TracerProvider(resource=resource)
     if settings.applicationinsights_connection_string:
-        # Fix 5: Actually wire Application Insights instead of silently doing nothing.
+        # Fix: Use configure_azure_monitor from azure-monitor-opentelemetry (the
+        # package that IS in pyproject.toml). This replaces the broken
+        # AzureMonitorTraceExporter import that referenced a different, absent package.
         try:
-            from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
-            azure_exporter = AzureMonitorTraceExporter(
+            from azure.monitor.opentelemetry import configure_azure_monitor
+            configure_azure_monitor(
                 connection_string=settings.applicationinsights_connection_string
             )
-            provider.add_span_processor(BatchSpanProcessor(azure_exporter))
-            logging.info("Azure Monitor OpenTelemetry exporter configured.")
-        except ImportError:
-            logging.warning("azure-monitor-opentelemetry-exporter not installed; falling back to ConsoleSpanExporter.")
+            logging.info("Azure Monitor OpenTelemetry configured via configure_azure_monitor.")
+            # configure_azure_monitor sets up its own tracer provider; skip manual setup.
+            trace.set_tracer_provider(TracerProvider(resource=resource))
+        except Exception as e:
+            logging.warning(f"Azure Monitor setup failed ({e}); falling back to ConsoleSpanExporter.")
             provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+            trace.set_tracer_provider(provider)
     else:
         provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
-    trace.set_tracer_provider(provider)
+        trace.set_tracer_provider(provider)
 
     FastAPIInstrumentor.instrument_app(app)
 
@@ -62,12 +66,12 @@ def configure_observability(app: FastAPI, settings: Settings) -> None:
         ),
     )
 
-    # --- Metrics: exposed at /metrics for Prometheus to scrape ---
-    # Fix 2: /metrics is gated behind a simple API key check to prevent
-    # unauthenticated enumeration of internal service telemetry.
+    # --- Metrics: exposed at /metrics, protected behind require_user ---
+    # Fix: Import require_user here (importing at module level would create a
+    # circular import since security.py imports config.py which is also used here).
     from fastapi import Depends, Response
-    from fastapi.routing import APIRoute
     from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    from src.core.security import require_user
 
     @app.get("/metrics", include_in_schema=False, dependencies=[Depends(require_user)])
     async def metrics() -> Response:
