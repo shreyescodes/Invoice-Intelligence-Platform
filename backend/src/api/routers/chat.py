@@ -62,8 +62,21 @@ async def ask(query: ChatQuery) -> ChatResponse:
             temperature=0.0
         )
         sql_query = response.choices[0].message.content.strip()
-        
-        # Execute against Snowflake
+
+        # Fix 1: SQL Injection Guard — allowlist SELECT-only queries.
+        # The LLM docstring warned about this; now it is enforced.
+        # Strip leading whitespace/comments before checking the verb.
+        _sql_stripped = sql_query.lstrip()
+        _forbidden = ["drop", "delete", "insert", "update", "alter", "create", "truncate", "exec", "execute"]
+        _first_word = _sql_stripped.split()[0].lower() if _sql_stripped.split() else ""
+        if _first_word != "select" or any(kw in _sql_stripped.lower() for kw in _forbidden):
+            return ChatResponse(
+                answer="I can only answer read-only questions. The generated query was not a safe SELECT statement.",
+                sql_used=sql_query,
+                data=None
+            )
+
+        # Execute against Snowflake (read-only by policy)
         query_data = []
         if settings.using_real_snowflake:
             import snowflake.connector

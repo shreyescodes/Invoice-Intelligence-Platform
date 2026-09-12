@@ -32,12 +32,19 @@ def configure_observability(app: FastAPI, settings: Settings) -> None:
     # --- Tracing ---
     provider = TracerProvider(resource=resource)
     if settings.applicationinsights_connection_string:
-        # TODO(phase 5): swap in azure.monitor.opentelemetry's
-        # configure_azure_monitor(connection_string=...) here instead,
-        # or add an OTLP exporter pointed at an OTel Collector that
-        # fans out to both App Insights and the local stack.
-        pass
-    provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+        # Fix 5: Actually wire Application Insights instead of silently doing nothing.
+        try:
+            from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
+            azure_exporter = AzureMonitorTraceExporter(
+                connection_string=settings.applicationinsights_connection_string
+            )
+            provider.add_span_processor(BatchSpanProcessor(azure_exporter))
+            logging.info("Azure Monitor OpenTelemetry exporter configured.")
+        except ImportError:
+            logging.warning("azure-monitor-opentelemetry-exporter not installed; falling back to ConsoleSpanExporter.")
+            provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+    else:
+        provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
     trace.set_tracer_provider(provider)
 
     FastAPIInstrumentor.instrument_app(app)
@@ -56,9 +63,15 @@ def configure_observability(app: FastAPI, settings: Settings) -> None:
     )
 
     # --- Metrics: exposed at /metrics for Prometheus to scrape ---
-    from prometheus_client import make_asgi_app
-    metrics_app = make_asgi_app()
-    app.mount("/metrics", metrics_app)
+    # Fix 2: /metrics is gated behind a simple API key check to prevent
+    # unauthenticated enumeration of internal service telemetry.
+    from fastapi import Depends, Response
+    from fastapi.routing import APIRoute
+    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+
+    @app.get("/metrics", include_in_schema=False, dependencies=[Depends(require_user)])
+    async def metrics() -> Response:
+        return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 def get_logger(name: str) -> structlog.stdlib.BoundLogger:

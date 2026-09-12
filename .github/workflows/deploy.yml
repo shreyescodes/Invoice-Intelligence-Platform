@@ -50,21 +50,26 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          
-      - name: Build FastAPI and Function App
+
+      # Fix 3: FastAPI App Service package — only needs src/ and deps.
+      # Azure App Service looks for the startup command (uvicorn) and
+      # must NOT contain function_app.py or it confuses the host.
+      - name: Build FastAPI package
         run: |
           pushd backend
-          python -m venv .venv
-          source .venv/bin/activate
-          pip install -r requirements.txt
+          pip install --target=.deploy_fastapi -r <(python -c "import tomllib; deps=tomllib.load(open('pyproject.toml','rb'))['project']['dependencies']; print('\n'.join(deps))")
+          zip -r ../fastapi_package.zip src/ .deploy_fastapi/ pyproject.toml
           popd
-          
+
       - name: Deploy FastAPI Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: api-inv-prod-${{ secrets.AZURE_SUFFIX }}
-          package: backend/
-          
+          package: fastapi_package.zip
+          startup-command: "uvicorn src.api.main:app --host 0.0.0.0 --port 8000"
+
+      # Fix 3: Function App package — must include function_app.py at root.
+      # The Azure Functions host discovers functions from function_app.py.
       - name: Deploy Function App
         uses: azure/functions-action@v1
         with:
