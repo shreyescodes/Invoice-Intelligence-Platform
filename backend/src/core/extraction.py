@@ -63,22 +63,29 @@ def extract_invoice_data(file_bytes: bytes) -> ExtractedInvoice:
             if "InvoiceDate" in fields and fields["InvoiceDate"].value_date:
                 invoice_date = fields["InvoiceDate"].value_date
                     
-            if "SubTotal" in fields and getattr(fields["SubTotal"], "value_currency", None):
-                subtotal = Decimal(str(fields["SubTotal"].value_currency.amount))
+            if "SubTotal" in fields:
+                sub_vc = getattr(fields["SubTotal"], "value_currency", None)
+                if sub_vc is not None and getattr(sub_vc, "amount", None) is not None:
+                    subtotal = Decimal(str(sub_vc.amount))
                     
-            if "TotalTax" in fields and getattr(fields["TotalTax"], "value_currency", None):
-                tax_amount = Decimal(str(fields["TotalTax"].value_currency.amount))
+            if "TotalTax" in fields:
+                tax_vc = getattr(fields["TotalTax"], "value_currency", None)
+                if tax_vc is not None and getattr(tax_vc, "amount", None) is not None:
+                    tax_amount = Decimal(str(tax_vc.amount))
                     
-            if "InvoiceTotal" in fields and getattr(fields["InvoiceTotal"], "value_currency", None):
-                total_amount = Decimal(str(fields["InvoiceTotal"].value_currency.amount))
+            if "InvoiceTotal" in fields:
+                total_vc = getattr(fields["InvoiceTotal"], "value_currency", None)
+                if total_vc is not None and getattr(total_vc, "amount", None) is not None:
+                    total_amount = Decimal(str(total_vc.amount))
                     
             confidence = confidence / max(len(fields), 1)
             
     if confidence < 0.8 and result.content:
         logger.info("Low confidence extraction. Triggering LLM cleanup...")
         try:
-            from src.llm.provider import extract_json
             import json
+
+            from src.llm.provider import extract_json
             prompt = f"The following invoice OCR text had low confidence. Extract 'VendorName', 'InvoiceId', and 'PurchaseOrder' in JSON format (keys must be exact):\n{result.content}"
             cleaned = extract_json(prompt)
             if cleaned:

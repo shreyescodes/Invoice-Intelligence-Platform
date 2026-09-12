@@ -21,7 +21,8 @@ async def lifespan(app: FastAPI):
     if settings.environment != "local":
         try:
             from src.core.security import azure_scheme
-            await azure_scheme.openid_config.load_config()
+            if azure_scheme is not None:
+                await azure_scheme.openid_config.load_config()  # type: ignore[union-attr]
             import logging
             logging.info("Successfully loaded Azure AD OpenID configuration keys.")
         except Exception as e:

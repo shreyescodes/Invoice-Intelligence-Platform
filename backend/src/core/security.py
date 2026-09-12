@@ -51,7 +51,7 @@ settings_cache = get_settings()
 azure_scheme = None
 if settings_cache.environment != "local":
     try:
-        from fastapi_azure_auth import SingleTenantAzureAuthorizationBearer
+        from fastapi_azure_auth import SingleTenantAzureAuthorizationBearer  # type: ignore[import-not-found]
         if settings_cache.azure_client_id and settings_cache.azure_tenant_id:
             azure_scheme = SingleTenantAzureAuthorizationBearer(
                 app_client_id=settings_cache.azure_client_id,

@@ -10,9 +10,9 @@ import io
 import logging
 from decimal import Decimal
 
-import joblib
+import joblib  # type: ignore[import-untyped]
 import numpy as np
-from sklearn.linear_model import SGDOneClassSVM
+from sklearn.linear_model import SGDOneClassSVM  # type: ignore[import-untyped]
 
 from src.core.db import get_blob_service_client
 

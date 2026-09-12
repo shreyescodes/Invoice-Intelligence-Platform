@@ -25,15 +25,15 @@ def get_llm_client(settings: Settings | None = None) -> tuple[OpenAI | AzureOpen
     settings = settings or get_settings()
 
     if settings.llm_provider == "azure_openai":
-        client = AzureOpenAI(
+        azure_client = AzureOpenAI(
             azure_endpoint=settings.azure_openai_endpoint,
             api_key=settings.azure_openai_api_key,
             api_version=settings.azure_openai_api_version,
         )
-        return client, settings.azure_openai_deployment
+        return azure_client, settings.azure_openai_deployment
 
-    client = OpenAI(base_url=settings.ollama_base_url, api_key="ollama")  # key is unused
-    return client, settings.ollama_model
+    ollama_client = OpenAI(base_url=settings.ollama_base_url, api_key="ollama")  # key is unused
+    return ollama_client, settings.ollama_model
 
 
 @lru_cache
@@ -42,15 +42,15 @@ def get_async_llm_client(settings: Settings | None = None):
     settings = settings or get_settings()
 
     if settings.llm_provider == "azure_openai":
-        client = AsyncAzureOpenAI(
+        async_azure_client = AsyncAzureOpenAI(
             azure_endpoint=settings.azure_openai_endpoint,
             api_key=settings.azure_openai_api_key,
             api_version=settings.azure_openai_api_version,
         )
-        return client, settings.azure_openai_deployment
+        return async_azure_client, settings.azure_openai_deployment
 
-    client = AsyncOpenAI(base_url=settings.ollama_base_url, api_key="ollama")
-    return client, settings.ollama_model
+    async_ollama_client = AsyncOpenAI(base_url=settings.ollama_base_url, api_key="ollama")
+    return async_ollama_client, settings.ollama_model
 
 
 def extract_json(prompt: str, *, settings: Settings | None = None) -> str:
