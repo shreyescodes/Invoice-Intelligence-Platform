@@ -41,8 +41,8 @@ def configure_observability(app: FastAPI, settings: Settings) -> None:
                 connection_string=settings.applicationinsights_connection_string
             )
             logging.info("Azure Monitor OpenTelemetry configured via configure_azure_monitor.")
-            # configure_azure_monitor sets up its own tracer provider; skip manual setup.
-            trace.set_tracer_provider(TracerProvider(resource=resource))
+            # configure_azure_monitor registers its own tracer provider internally.
+            # Do NOT call trace.set_tracer_provider() after this — it would overwrite it.
         except Exception as e:
             logging.warning(f"Azure Monitor setup failed ({e}); falling back to ConsoleSpanExporter.")
             provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
