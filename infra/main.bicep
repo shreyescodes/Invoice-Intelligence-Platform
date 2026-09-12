@@ -182,6 +182,11 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
           value: docIntelligence.properties.endpoint
         }
         {
+          // Key Vault reference — resolves the API key via Managed Identity at runtime
+          name: 'DOCUMENT_INTELLIGENCE_KEY'
+          value: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}secrets/document-intelligence-key/)'
+        }
+        {
           name: 'COSMOS_ENDPOINT'
           value: cosmosDbAccount.properties.documentEndpoint
         }
@@ -240,6 +245,11 @@ resource webApp 'Microsoft.Web/sites@2022-09-01' = {
         {
           name: 'DOCUMENT_INTELLIGENCE_ENDPOINT'
           value: docIntelligence.properties.endpoint
+        }
+        {
+          // Key Vault reference — resolves the API key via Managed Identity at runtime
+          name: 'DOCUMENT_INTELLIGENCE_KEY'
+          value: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}secrets/document-intelligence-key/)'
         }
         {
           name: 'COSMOS_ENDPOINT'

@@ -48,9 +48,12 @@ async def ask(query: ChatQuery) -> ChatResponse:
     client, model = get_async_llm_client(settings)
     
     system_prompt = """You are a data assistant for an invoice processing platform.
-    Translate the user's natural language question into a PostgreSQL SQL query.
-    Assume a table `invoices` with columns: id, vendor_id, status, subtotal, tax_amount, total_amount, created_at.
-    Return ONLY the raw SQL query, nothing else. Do not use markdown formatting blocks like ```sql."""
+    Translate the user's natural language question into a Snowflake SQL query.
+    The warehouse uses a star schema with these tables:
+    - fact_invoice (invoice_id VARCHAR, vendor_key INTEGER, invoice_number VARCHAR, status VARCHAR, subtotal DECIMAL, tax_amount DECIMAL, total_amount DECIMAL, anomaly_score FLOAT, created_at TIMESTAMP)
+    - dim_vendor (vendor_key INTEGER, vendor_id VARCHAR, vendor_name VARCHAR, tax_id VARCHAR)
+    Join fact_invoice to dim_vendor on fact_invoice.vendor_key = dim_vendor.vendor_key to resolve vendor names.
+    Return ONLY the raw SQL query. Do not use markdown formatting blocks like ```sql."""
     
     try:
         response = await client.chat.completions.create(
