@@ -22,7 +22,6 @@ read-only role, and consider a query-plan sanity check before executing.
 """
 
 from fastapi import APIRouter
-from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 from src.core.config import get_settings
@@ -91,12 +90,11 @@ async def ask(query: ChatQuery) -> ChatResponse:
                     warehouse=settings.snowflake_warehouse,
                     database=settings.snowflake_database,
                     schema="PUBLIC"
-                ) as conn:
-                    with conn.cursor() as cursor:
-                        cursor.execute(sql_query)
-                        if cursor.description:
-                            columns = [col[0] for col in cursor.description]
-                            query_data = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                ) as conn, conn.cursor() as cursor:
+                    cursor.execute(sql_query)
+                    if cursor.description:
+                        columns = [col[0] for col in cursor.description]
+                        query_data = [dict(zip(columns, row, strict=False)) for row in cursor.fetchall()]
             except Exception as sql_e:
                 return ChatResponse(
                     answer=f"I generated the SQL, but execution failed: {str(sql_e)}",

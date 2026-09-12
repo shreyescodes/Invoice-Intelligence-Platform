@@ -4,13 +4,15 @@ Run locally with: uvicorn src.api.main:app --reload
 Or via docker compose: docker compose up api
 """
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.routers import approvals, chat, invoices
 from src.core.config import get_settings
 from src.core.observability import configure_observability
+from src.core.security import require_user
 
 settings = get_settings()
 
@@ -43,9 +45,6 @@ app.add_middleware(
 )
 
 configure_observability(app, settings)
-
-from fastapi import Depends
-from src.core.security import require_user
 
 app.include_router(invoices.router, prefix="/invoices", tags=["invoices"], dependencies=[Depends(require_user)])
 app.include_router(approvals.router, prefix="/approvals", tags=["approvals"], dependencies=[Depends(require_user)])

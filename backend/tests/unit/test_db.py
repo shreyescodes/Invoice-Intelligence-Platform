@@ -1,6 +1,7 @@
-from unittest.mock import patch, MagicMock
-import pytest
-from src.core.db import get_cosmos_client, get_blob_service_client
+from unittest.mock import patch
+
+from src.core.db import get_blob_service_client, get_cosmos_client
+
 
 @patch('src.core.db.get_settings')
 def test_get_cosmos_client_local(mock_settings):
@@ -16,6 +17,6 @@ def test_get_cosmos_client_local(mock_settings):
 def test_get_blob_service_client_local(mock_settings):
     mock_settings.return_value.azure_storage_connection_string = "UseDevelopmentStorage=true"
     
-    with patch('src.core.db.BlobServiceClient') as MockClient:
+    with patch('src.core.db.BlobServiceClient'):
         client = get_blob_service_client()
         assert client is not None
