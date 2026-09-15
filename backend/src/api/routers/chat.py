@@ -82,7 +82,9 @@ async def ask(query: ChatQuery) -> ChatResponse:
         query_data = []
         if settings.using_real_snowflake:
             import snowflake.connector
-            try:
+            from starlette.concurrency import run_in_threadpool
+            
+            def run_snowflake_query():
                 with snowflake.connector.connect(
                     user=settings.snowflake_user,
                     password=settings.snowflake_password,
@@ -94,7 +96,11 @@ async def ask(query: ChatQuery) -> ChatResponse:
                     cursor.execute(sql_query)
                     if cursor.description:
                         columns = [col[0] for col in cursor.description]
-                        query_data = [dict(zip(columns, row, strict=False)) for row in cursor.fetchall()]
+                        return [dict(zip(columns, row, strict=False)) for row in cursor.fetchall()]
+                return []
+
+            try:
+                query_data = await run_in_threadpool(run_snowflake_query)
             except Exception as sql_e:
                 return ChatResponse(
                     answer=f"I generated the SQL, but execution failed: {str(sql_e)}",

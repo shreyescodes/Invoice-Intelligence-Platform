@@ -66,7 +66,7 @@ async def decide(invoice_id: UUID, decision: ApprovalDecision) -> dict[str, str]
         if settings.orchestrator_host_key:
             headers["x-functions-key"] = settings.orchestrator_host_key
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(event_url, json={"approve": decision.approve, "reason": decision.reason}, headers=headers)
             resp.raise_for_status()
     except Exception as e:

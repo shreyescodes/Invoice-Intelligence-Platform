@@ -66,7 +66,7 @@ async def upload_invoice(file: UploadFile) -> InvoiceUploadResponse:
         if settings.orchestrator_host_key:
             headers["x-functions-key"] = settings.orchestrator_host_key
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(orchestrator_url, json=str(invoice_id), headers=headers)
             if resp.status_code in (200, 202):
                 instance_data = resp.json()
