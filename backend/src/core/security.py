@@ -51,9 +51,9 @@ settings_cache = get_settings()
 azure_scheme = None
 if settings_cache.environment != "local":
     try:
-        from fastapi_azure_auth import SingleTenantAzureAuthorizationBearer  # type: ignore[import-not-found]
+        from fastapi_azure_auth import SingleTenantAzureAuthorizationCodeBearer  # type: ignore[import-not-found,attr-defined]
         if settings_cache.azure_client_id and settings_cache.azure_tenant_id:
-            azure_scheme = SingleTenantAzureAuthorizationBearer(
+            azure_scheme = SingleTenantAzureAuthorizationCodeBearer(
                 app_client_id=settings_cache.azure_client_id,
                 tenant_id=settings_cache.azure_tenant_id,
                 scopes={f"api://{settings_cache.azure_client_id}/user_impersonation": "user_impersonation"}
