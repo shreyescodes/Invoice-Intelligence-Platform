@@ -1,116 +1,147 @@
-name: invoice-platform
+# Local stack: `docker compose up --build`, then open http://localhost:8080
+#   --profile observability   adds Prometheus (http://localhost:9090) and Grafana (http://localhost:3000)
+#   --profile llm             adds Ollama for free-form questions on the Ask page (see README)
+name: invoice-intelligence
+
+x-backend: &backend
+  build: ./backend
+  image: invoice-intelligence/backend:local
+  environment: &backend-env
+    ENVIRONMENT: ${ENVIRONMENT:-development}
+    DEMO_MODE: ${DEMO_MODE:-true}
+    JWT_SECRET: ${JWT_SECRET:-local-compose-secret-change-me-0123456789abcdef}
+    DATABASE_URL: postgresql+psycopg://iip:${POSTGRES_PASSWORD:-iip}@postgres:5432/iip
+    # NL analytics runs as a role that can only SELECT from the analytics_* views.
+    ANALYTICS_DATABASE_URL: postgresql+psycopg://iip_readonly:${READONLY_PASSWORD:-readonly}@postgres:5432/iip
+    ERP_BASE_URL: http://erp:8100
+    ERP_API_KEY: ${ERP_API_KEY:-dev-erp-key}
+    LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    LOG_FORMAT: json
+    CORS_ORIGINS: '["http://localhost:8080"]'
+    LLM_PROVIDER: ${LLM_PROVIDER:-none}
+    LLM_BASE_URL: ${LLM_BASE_URL:-http://ollama:11434/v1}
+    LLM_MODEL: ${LLM_MODEL:-qwen2.5-coder:7b}
+    LLM_API_KEY: ${LLM_API_KEY:-}
+  volumes:
+    - documents:/data
+  restart: unless-stopped
 
 services:
-  # --- Azure Blob Storage emulator (free, replaces real Blob Storage) ---
-  azurite:
-    image: mcr.microsoft.com/azure-storage/azurite
-    ports:
-      - "10000:10000"  # blob
-      - "10001:10001"  # queue
-    volumes:
-      - azurite-data:/data
-
-  # --- Azure Cosmos DB emulator (free, replaces real Cosmos DB) ---
-  cosmosdb-emulator:
-    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
-    ports:
-      - "8081:8081"
-      - "10250-10255:10250-10255"
+  postgres:
+    image: postgres:16-alpine
     environment:
-      AZURE_COSMOS_EMULATOR_PARTITION_COUNT: "3"
-      AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: "true"
+      POSTGRES_DB: iip
+      POSTGRES_USER: iip
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-iip}
+      READONLY_PASSWORD: ${READONLY_PASSWORD:-readonly}
     volumes:
-      - cosmos-data:/tmp/cosmos/appdata
-
-  # --- Local Postgres standing in for Snowflake during dev ---
-  # Same star-schema SQL runs on both; point at real Snowflake only
-  # for the final integration pass (see README > Cost-conscious build).
-  analytics-db:
-    image: postgres:16
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres/init-readonly-role.sh:/docker-entrypoint-initdb.d/10-readonly-role.sh:ro
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iip -d iip"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  erp:
+    build: ./erp-mock
+    image: invoice-intelligence/erp-mock:local
     environment:
-      POSTGRES_DB: analytics
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - analytics-data:/var/lib/postgresql/data
-
-  # --- Mock SAP OData-style service (PO / vendor master lookups) ---
-  mock-sap:
-    build: ./backend/src/mock_sap
+      ERP_API_KEY: ${ERP_API_KEY:-dev-erp-key}
+      ERP_FAILURE_RATE: ${ERP_FAILURE_RATE:-0}
     ports:
-      - "8100:8100"
+      - "127.0.0.1:8100:8100"
+    restart: unless-stopped
 
-  # --- Local LLM runtime (OpenAI-compatible API, zero token cost) ---
-  ollama:
-    image: ollama/ollama
+  migrate:
+    <<: *backend
+    command: ["iip", "migrate"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  seed:
+    <<: *backend
+    command: ["iip", "seed"]
+    restart: "no"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      erp:
+        condition: service_healthy
+
+  api:
+    <<: *backend
     ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/root/.ollama
-    # First run: docker compose exec ollama ollama pull qwen2.5:14b
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
-  # --- MLflow tracking server (experiment tracking, model registry) ---
-  mlflow:
-    image: python:3.11-slim
-    working_dir: /mlflow
-    command: >
-      bash -c "pip install --no-cache-dir mlflow==2.17.2 &&
-               mlflow server --host 0.0.0.0 --port 5001
-               --backend-store-uri sqlite:///mlflow.db
-               --default-artifact-root /mlflow/artifacts"
+  worker:
+    <<: *backend
+    command: ["iip", "worker"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9101/metrics', timeout=2)"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      erp:
+        condition: service_healthy
+
+  web:
+    build: ./frontend
+    image: invoice-intelligence/web:local
     ports:
-      - "5001:5001"
-    volumes:
-      - mlflow-data:/mlflow
+      - "8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
 
-  # --- Metrics + dashboards (self-hosted, unlimited, zero cost) ---
   prometheus:
-    image: prom/prometheus
-    ports:
-      - "9090:9090"
+    image: prom/prometheus:v3.5.0
+    profiles: [observability]
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
+      - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
 
   grafana:
-    image: grafana/grafana
-    ports:
-      - "3000:3000"
+    image: grafana/grafana:12.1.0
+    profiles: [observability]
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
-      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/invoice-intelligence.json
     volumes:
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
-      - grafana-data:/var/lib/grafana
-    depends_on:
-      - prometheus
-
-  # --- The FastAPI app itself ---
-  api:
-    build: ./backend
+      - ./deploy/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana:/var/lib/grafana
     ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    environment:
-      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
-      COSMOS_ENDPOINT: "https://cosmosdb-emulator:8081"
-      MOCK_SAP_BASE_URL: "http://mock-sap:8100"
-      OLLAMA_BASE_URL: "http://ollama:11434/v1"
-      MLFLOW_TRACKING_URI: "http://mlflow:5001"
-    depends_on:
-      - azurite
-      - cosmosdb-emulator
-      - mock-sap
-      - ollama
+      - "127.0.0.1:3000:3000"
+    depends_on: [prometheus]
+
+  ollama:
+    image: ollama/ollama:0.11.4
+    profiles: [llm]
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
 
 volumes:
-  azurite-data:
-  cosmos-data:
-  analytics-data:
-  ollama-data:
-  mlflow-data:
-  prometheus-data:
-  grafana-data:
+  pgdata:
+  documents:
+  prometheus:
+  grafana:
+  ollama:

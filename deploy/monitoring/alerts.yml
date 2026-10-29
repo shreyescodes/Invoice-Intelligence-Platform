@@ -1,0 +1,39 @@
+groups:
+  - name: invoice-intelligence
+    rules:
+      - alert: ApiHighErrorRate
+        expr: |
+          sum(rate(iip_http_requests_total{status=~"5.."}[5m]))
+            / clamp_min(sum(rate(iip_http_requests_total[5m])), 1e-9) > 0.02
+        for: 10m
+        labels: {severity: page}
+        annotations:
+          summary: "More than 2% of API requests are failing"
+
+      - alert: ApiSlowRequests
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(iip_http_request_duration_seconds_bucket[5m]))) > 1
+        for: 15m
+        labels: {severity: ticket}
+        annotations:
+          summary: "API p95 latency above 1s"
+
+      - alert: JobBacklogGrowing
+        expr: sum(iip_job_queue_depth) > 50
+        for: 15m
+        labels: {severity: ticket}
+        annotations:
+          summary: "Invoice job queue backlog above 50 for 15 minutes; scale the worker or check the ERP"
+
+      - alert: JobsDeadLettered
+        expr: increase(iip_jobs_completed_total{result="dead"}[1h]) > 0
+        labels: {severity: ticket}
+        annotations:
+          summary: "Jobs exhausted their retries; failed invoices need operator attention"
+
+      - alert: ErpUnavailable
+        expr: sum(rate(iip_erp_requests_total{result="unavailable"}[5m])) > 0.1
+        for: 10m
+        labels: {severity: page}
+        annotations:
+          summary: "ERP calls are failing; posting and PO matching are being retried"
