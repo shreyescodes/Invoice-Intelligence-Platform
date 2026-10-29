@@ -1,44 +1,38 @@
-# Contributing to the Invoice Intelligence Platform
+# Contributing
 
-We appreciate your interest in contributing! Following these guidelines helps ensure a smooth, high-quality development process.
+## Workflow
 
-## Branching Strategy
+1. Branch from `main` (`feat/…`, `fix/…`, `docs/…`).
+2. Keep commits focused, with messages in the imperative (`Add duplicate check for…`); a
+   [Conventional Commits](https://www.conventionalcommits.org) prefix is welcome.
+3. Open a pull request. CI must pass, and changes to the pipeline or the API need tests.
 
-We follow a feature-branching model:
-- `main` is the stable, production-ready branch.
-- Feature branches should be branched off `main` and named descriptively (e.g., `feature/snowflake-etl`, `fix/blob-extension-bug`).
-- Open a Pull Request (PR) against `main` for review.
+## Local checks
 
-## Code Quality Standards
+```bash
+# backend
+cd backend
+uv run ruff check . && uv run ruff format --check .
+uv run mypy app
+uv run pytest                                   # SQLite
+TEST_DATABASE_URL=postgresql+psycopg://iip:iip@localhost:5433/iip_test uv run pytest   # PostgreSQL
 
-The project relies on strict linting and type checking enforced by GitHub Actions. Before submitting a PR, ensure your code passes all local checks:
+# frontend
+cd frontend
+npm run lint && npm run typecheck && npm test && npm run build
+```
 
-1. **Linting (Ruff):**
-   We use [Ruff](https://beta.ruff.rs/docs/) as our linter and formatter.
-   ```bash
-   ruff check backend/
-   ```
-   To auto-fix fixable issues:
-   ```bash
-   ruff check --fix backend/
-   ```
+## Conventions
 
-2. **Static Type Checking (Mypy):**
-   We use [Mypy](https://mypy.readthedocs.io/) for strict type enforcement.
-   ```bash
-   python -m mypy backend/src
-   ```
-   Ensure you provide complete type annotations for all new functions and variables. If a third-party library lacks stubs, use `# type: ignore[import-untyped]`.
-
-3. **Testing (Pytest):**
-   Ensure all unit tests pass and write new tests for your features.
-   ```bash
-   pytest backend/tests/
-   ```
-
-## Pull Request Process
-
-1. Ensure your PR description clearly details the problem being solved and the approach taken.
-2. The GitHub Actions CI pipeline must pass (Linting, Typing, and Build checks).
-3. If your changes affect the architecture or the deployment process, update the respective documentation in the `docs/` folder.
-4. Two approvals from maintainers are required before merging.
+- **Schema changes** need an Alembic migration (`uv run alembic revision --autogenerate -m "…"`, then
+  review it). The test suite fails if models and migrations disagree.
+- **API changes:** regenerate the contract and client types, and commit both:
+  `uv run iip export-openapi --out ../frontend/openapi.json`, then `npm run gen:api` in `frontend/`.
+- **State changes** to an invoice go through `app/services/invoices.py` (`transition`) so the audit
+  event and any follow-up job are written in the same transaction.
+- **Money** is `Decimal` in Python and `NUMERIC` in the database, never `float`.
+- **New validation rules** return a clear, reviewer-facing message: it is shown verbatim in the UI.
+- **UI colours** come from the tokens in `frontend/src/index.css`, which have light and dark values;
+  status is always shown as icon and label, never colour alone.
+- **Screenshots** in `docs/screenshots` are generated, not hand-made:
+  `npm run screenshots` against a freshly seeded stack.
