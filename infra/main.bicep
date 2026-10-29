@@ -1,410 +1,408 @@
-// Infra as code — phase 6.
+// Invoice Intelligence Platform on Azure Container Apps.
+//
+//   web (nginx, public)  ->  api (internal)  ->  PostgreSQL Flexible Server
+//                            worker (no ingress, scales on demand)  -> Blob Storage, ERP
+//   migrate (Container Apps job, run by the deploy workflow)
+//
+// One user-assigned managed identity pulls images, reads Key Vault secrets and writes blobs, so no
+// storage keys or registry passwords exist anywhere. Deploy infra/registry.bicep first.
 targetScope = 'resourceGroup'
 
+@description('Short environment name used in resource names: lowercase letters and digits, e.g. prod.')
+@minLength(2)
+@maxLength(8)
+param environmentName string
+
 param location string = resourceGroup().location
-param environmentName string = 'dev'
 
-var suffix = uniqueString(resourceGroup().id)
+@description('Image tag (git SHA) pushed to the registry by CI.')
+param imageTag string
 
-var storageAccountName = 'stinv${environmentName}${suffix}'
-var cosmosAccountName = 'cosmos-inv-${environmentName}-${suffix}'
-var functionAppName = 'func-inv-${environmentName}-${suffix}'
-var appInsightsName = 'appi-inv-${environmentName}-${suffix}'
-var keyVaultName = 'kv-inv-${environmentName}-${suffix}'
-var logAnalyticsWorkspaceName = 'log-inv-${environmentName}-${suffix}'
-var appServicePlanName = 'asp-inv-${environmentName}-${suffix}'
-var webAppName = 'api-inv-${environmentName}-${suffix}'
-var staticWebAppName = 'ui-inv-${environmentName}-${suffix}'
-var docIntelligenceName = 'docintel-inv-${environmentName}-${suffix}'
+@secure()
+param postgresAdminPassword string
 
-// Storage Account
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
-  name: storageAccountName
+@secure()
+@minLength(32)
+param jwtSecret string
+
+@description('Base URL of the SAP S/4HANA (or compatible) API. Empty deploys the bundled mock ERP.')
+param erpBaseUrl string = ''
+
+@secure()
+param erpApiKey string = newGuid()
+
+@description('Expose demo accounts on the login page. Only for showcase environments.')
+param demoMode bool = false
+
+@description('Optional Azure OpenAI endpoint for the natural-language analytics page.')
+param azureOpenAiEndpoint string = ''
+param azureOpenAiDeployment string = 'gpt-4o-mini'
+
+var suffix = uniqueString(resourceGroup().id, environmentName)
+var deployMockErp = empty(erpBaseUrl)
+var tags = { application: 'invoice-intelligence', environment: environmentName }
+var postgresAdmin = 'iipadmin'
+
+var roles = {
+  acrPull: '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+  keyVaultSecretsUser: '4633458b-17de-408a-b874-0445c86b69e6'
+  storageBlobDataContributor: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+}
+
+// --- Identity, registry, secrets ------------------------------------------------------------------
+
+resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: 'id-iip-${environmentName}'
   location: location
-  sku: {
-    name: 'Standard_LRS'
+  tags: tags
+}
+
+resource registry 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
+  name: 'acriip${environmentName}${suffix}'
+}
+
+resource acrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(registry.id, identity.id, roles.acrPull)
+  scope: registry
+  properties: {
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roles.acrPull)
   }
+}
+
+resource vault 'Microsoft.KeyVault/vaults@2023-07-01' = {
+  name: 'kv-iip-${environmentName}-${take(suffix, 8)}'
+  location: location
+  tags: tags
+  properties: {
+    tenantId: subscription().tenantId
+    sku: { family: 'A', name: 'standard' }
+    enableRbacAuthorization: true
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 30
+    enablePurgeProtection: true
+  }
+}
+
+resource vaultSecretsUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(vault.id, identity.id, roles.keyVaultSecretsUser)
+  scope: vault
+  properties: {
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roles.keyVaultSecretsUser)
+  }
+}
+
+var databaseUrl = 'postgresql+psycopg://${postgresAdmin}:${uriComponent(postgresAdminPassword)}@${postgres.properties.fullyQualifiedDomainName}:5432/iip?sslmode=require'
+
+resource secretDatabaseUrl 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: vault
+  name: 'database-url'
+  properties: { value: databaseUrl }
+}
+
+resource secretJwt 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: vault
+  name: 'jwt-secret'
+  properties: { value: jwtSecret }
+}
+
+resource secretErpKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: vault
+  name: 'erp-api-key'
+  properties: { value: erpApiKey }
+}
+
+// --- Data -----------------------------------------------------------------------------------------
+
+resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
+  name: 'psql-iip-${environmentName}-${suffix}'
+  location: location
+  tags: tags
+  sku: { name: 'Standard_B1ms', tier: 'Burstable' }
+  properties: {
+    version: '16'
+    administratorLogin: postgresAdmin
+    administratorLoginPassword: postgresAdminPassword
+    storage: { storageSizeGB: 32, autoGrow: 'Enabled' }
+    backup: { backupRetentionDays: 14, geoRedundantBackup: 'Disabled' }
+    highAvailability: { mode: 'Disabled' }
+    network: { publicNetworkAccess: 'Enabled' }
+  }
+}
+
+resource postgresDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = {
+  parent: postgres
+  name: 'iip'
+  properties: { charset: 'UTF8', collation: 'en_US.utf8' }
+}
+
+// Container Apps egress comes from Azure-owned addresses; tighten with VNet integration for production.
+resource postgresAllowAzure 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2024-08-01' = {
+  parent: postgres
+  name: 'AllowAzureServices'
+  properties: { startIpAddress: '0.0.0.0', endIpAddress: '0.0.0.0' }
+}
+
+resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
+  name: take('stiip${environmentName}${suffix}', 24)
+  location: location
+  tags: tags
+  sku: { name: 'Standard_ZRS' }
   kind: 'StorageV2'
   properties: {
     minimumTlsVersion: 'TLS1_2'
+    supportsHttpsTrafficOnly: true
+    allowBlobPublicAccess: false
+    allowSharedKeyAccess: false
   }
 }
 
-// Blob Storage Services
-resource blobServices 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = {
+  parent: storage
   name: 'default'
-  parent: storageAccount
-}
-
-// Raw Invoices Container
-resource rawInvoicesContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
-  name: 'raw-invoices'
-  parent: blobServices
-}
-
-// Azure AI Document Intelligence (Form Recognizer)
-resource docIntelligence 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
-  name: docIntelligenceName
-  location: location
-  kind: 'FormRecognizer'
-  sku: {
-    name: 'S0'
-  }
   properties: {
-    publicNetworkAccess: 'Enabled'
-    networkAcls: {
-      defaultAction: 'Allow'
-    }
+    deleteRetentionPolicy: { enabled: true, days: 30 }
+    containerDeleteRetentionPolicy: { enabled: true, days: 30 }
+    isVersioningEnabled: true
   }
 }
 
-// Log Analytics
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
-  name: logAnalyticsWorkspaceName
-  location: location
+resource invoicesContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
+  parent: blobService
+  name: 'invoices'
+  properties: { publicAccess: 'None' }
+}
+
+resource blobContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storage.id, identity.id, roles.storageBlobDataContributor)
+  scope: storage
   properties: {
-    sku: {
-      name: 'PerGB2018'
-    }
+    principalId: identity.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roles.storageBlobDataContributor)
+  }
+}
+
+// --- Container Apps -------------------------------------------------------------------------------
+
+resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+  name: 'log-iip-${environmentName}'
+  location: location
+  tags: tags
+  properties: {
+    sku: { name: 'PerGB2018' }
     retentionInDays: 30
   }
 }
 
-// Application Insights
-resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: appInsightsName
+resource appEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
+  name: 'cae-iip-${environmentName}'
   location: location
-  kind: 'web'
+  tags: tags
   properties: {
-    Application_Type: 'web'
-    WorkspaceResourceId: logAnalyticsWorkspace.id
-  }
-}
-
-// Cosmos DB
-resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
-  name: cosmosAccountName
-  location: location
-  properties: {
-    databaseAccountOfferType: 'Standard'
-    locations: [
-      {
-        locationName: location
-        failoverPriority: 0
-      }
-    ]
-  }
-}
-
-// Cosmos DB Database
-resource cosmosDbDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-05-15' = {
-  name: 'invoice_platform'
-  parent: cosmosDbAccount
-  properties: {
-    resource: {
-      id: 'invoice_platform'
-    }
-  }
-}
-
-// Cosmos DB Container
-resource cosmosDbContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-05-15' = {
-  name: 'invoices'
-  parent: cosmosDbDatabase
-  properties: {
-    resource: {
-      id: 'invoices'
-      partitionKey: {
-        paths: [
-          '/vendor_id'
-        ]
-        kind: 'Hash'
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: logs.properties.customerId
+        sharedKey: logs.listKeys().primarySharedKey
       }
     }
-    options: {
-      throughput: 400
-    }
+    workloadProfiles: [{ name: 'Consumption', workloadProfileType: 'Consumption' }]
   }
 }
 
-// Key Vault
-resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
-  name: keyVaultName
-  location: location
-  properties: {
-    sku: {
-      family: 'A'
-      name: 'standard'
-    }
-    tenantId: subscription().tenantId
-    accessPolicies: []
-    enableRbacAuthorization: true
-  }
+var image = '${registry.properties.loginServer}/invoice-intelligence'
+var registries = [{ server: registry.properties.loginServer, identity: identity.id }]
+var vaultSecrets = [
+  { name: 'database-url', keyVaultUrl: secretDatabaseUrl.properties.secretUri, identity: identity.id }
+  { name: 'jwt-secret', keyVaultUrl: secretJwt.properties.secretUri, identity: identity.id }
+  { name: 'erp-api-key', keyVaultUrl: secretErpKey.properties.secretUri, identity: identity.id }
+]
+var erpUrl = deployMockErp ? 'https://${erpMock!.properties.configuration.ingress.fqdn}' : erpBaseUrl
+var backendEnv = concat(
+  [
+    { name: 'ENVIRONMENT', value: demoMode ? 'development' : 'production' }
+    { name: 'DEMO_MODE', value: string(demoMode) }
+    { name: 'LOG_FORMAT', value: 'json' }
+    { name: 'DATABASE_URL', secretRef: 'database-url' }
+    { name: 'JWT_SECRET', secretRef: 'jwt-secret' }
+    { name: 'ERP_API_KEY', secretRef: 'erp-api-key' }
+    { name: 'ERP_BASE_URL', value: erpUrl }
+    { name: 'STORAGE_BACKEND', value: 'azure_blob' }
+    { name: 'AZURE_STORAGE_ACCOUNT_URL', value: storage.properties.primaryEndpoints.blob }
+    { name: 'AZURE_STORAGE_CONTAINER', value: invoicesContainer.name }
+    { name: 'AZURE_CLIENT_ID', value: identity.properties.clientId } // selects the identity for DefaultAzureCredential
+    { name: 'MODEL_DIR', value: '/tmp/models' }
+  ],
+  empty(azureOpenAiEndpoint)
+    ? []
+    : [
+        { name: 'LLM_PROVIDER', value: 'azure_openai' }
+        { name: 'AZURE_OPENAI_ENDPOINT', value: azureOpenAiEndpoint }
+        { name: 'LLM_MODEL', value: azureOpenAiDeployment }
+      ]
+)
+var appIdentity = {
+  type: 'UserAssigned'
+  userAssignedIdentities: { '${identity.id}': {} }
 }
 
-// Function App
-resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
-  name: functionAppName
+resource erpMock 'Microsoft.App/containerApps@2024-03-01' = if (deployMockErp) {
+  name: 'ca-iip-erp-${environmentName}'
   location: location
-  kind: 'functionapp,linux'
-  identity: {
-    type: 'SystemAssigned'
-  }
+  tags: tags
+  identity: appIdentity
+  dependsOn: [acrPull, vaultSecretsUser]
   properties: {
-    siteConfig: {
-      appSettings: [
+    environmentId: appEnvironment.id
+    workloadProfileName: 'Consumption'
+    configuration: {
+      ingress: { external: false, targetPort: 8100, transport: 'auto' }
+      registries: registries
+      secrets: vaultSecrets
+    }
+    template: {
+      containers: [
         {
-          name: 'AzureWebJobsStorage__accountName'
-          value: storageAccount.name
-        }
-        {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appInsights.properties.InstrumentationKey
-        }
-        {
-          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: appInsights.properties.ConnectionString
-        }
-        {
-          name: 'FUNCTIONS_EXTENSION_VERSION'
-          value: '~4'
-        }
-        {
-          name: 'FUNCTIONS_WORKER_RUNTIME'
-          value: 'python'
-        }
-        {
-          name: 'KEY_VAULT_URL'
-          value: keyVault.properties.vaultUri
-        }
-        {
-          name: 'DOCUMENT_INTELLIGENCE_ENDPOINT'
-          value: docIntelligence.properties.endpoint
-        }
-        {
-          // Key Vault reference — resolves the API key via Managed Identity at runtime
-          name: 'DOCUMENT_INTELLIGENCE_KEY'
-          value: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}secrets/document-intelligence-key/)'
-        }
-        {
-          name: 'COSMOS_ENDPOINT'
-          value: cosmosDbAccount.properties.documentEndpoint
-        }
-        {
-          name: 'AZURE_STORAGE_CONNECTION_STRING'
-          value: 'https://${storageAccount.name}.blob.core.windows.net'
+          name: 'erp-mock'
+          image: '${image}/erp-mock:${imageTag}'
+          resources: { cpu: json('0.25'), memory: '0.5Gi' }
+          env: [{ name: 'ERP_API_KEY', secretRef: 'erp-api-key' }]
         }
       ]
-      linuxFxVersion: 'Python|3.11'
+      scale: { minReplicas: 1, maxReplicas: 1 }
     }
   }
 }
 
-// App Service Plan (Linux)
-resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
-  name: appServicePlanName
+resource api 'Microsoft.App/containerApps@2024-03-01' = {
+  name: 'ca-iip-api-${environmentName}'
   location: location
-  sku: {
-    name: 'B1'
-  }
-  kind: 'linux'
+  tags: tags
+  identity: appIdentity
+  dependsOn: [acrPull, vaultSecretsUser, blobContributor, postgresDatabase, postgresAllowAzure]
   properties: {
-    reserved: true
+    environmentId: appEnvironment.id
+    workloadProfileName: 'Consumption'
+    configuration: {
+      ingress: { external: false, targetPort: 8000, transport: 'auto', allowInsecure: false }
+      registries: registries
+      secrets: vaultSecrets
+    }
+    template: {
+      containers: [
+        {
+          name: 'api'
+          image: '${image}/backend:${imageTag}'
+          resources: { cpu: json('0.5'), memory: '1Gi' }
+          env: backendEnv
+          probes: [
+            { type: 'Liveness', httpGet: { path: '/health/live', port: 8000 }, periodSeconds: 15 }
+            { type: 'Readiness', httpGet: { path: '/health/ready', port: 8000 }, periodSeconds: 10 }
+          ]
+        }
+      ]
+      scale: {
+        minReplicas: 1
+        maxReplicas: 5
+        rules: [{ name: 'http', http: { metadata: { concurrentRequests: '50' } } }]
+      }
+    }
   }
 }
 
-// Web App (FastAPI Backend)
-resource webApp 'Microsoft.Web/sites@2022-09-01' = {
-  name: webAppName
+resource worker 'Microsoft.App/containerApps@2024-03-01' = {
+  name: 'ca-iip-worker-${environmentName}'
   location: location
-  kind: 'app,linux'
-  identity: {
-    type: 'SystemAssigned'
-  }
+  tags: tags
+  identity: appIdentity
+  dependsOn: [acrPull, vaultSecretsUser, blobContributor, postgresDatabase, postgresAllowAzure]
   properties: {
-    serverFarmId: appServicePlan.id
-    siteConfig: {
-      linuxFxVersion: 'PYTHON|3.11'
-      appSettings: [
+    environmentId: appEnvironment.id
+    workloadProfileName: 'Consumption'
+    configuration: {
+      registries: registries
+      secrets: vaultSecrets
+    }
+    template: {
+      containers: [
         {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: appInsights.properties.InstrumentationKey
+          name: 'worker'
+          image: '${image}/backend:${imageTag}'
+          command: ['iip', 'worker']
+          resources: { cpu: json('0.5'), memory: '1Gi' }
+          env: backendEnv
         }
+      ]
+      // Jobs are claimed with SKIP LOCKED, so replicas can be added freely.
+      scale: { minReplicas: 1, maxReplicas: 3 }
+    }
+  }
+}
+
+resource web 'Microsoft.App/containerApps@2024-03-01' = {
+  name: 'ca-iip-web-${environmentName}'
+  location: location
+  tags: tags
+  identity: appIdentity
+  dependsOn: [acrPull]
+  properties: {
+    environmentId: appEnvironment.id
+    workloadProfileName: 'Consumption'
+    configuration: {
+      ingress: { external: true, targetPort: 8080, transport: 'auto', allowInsecure: false }
+      registries: registries
+    }
+    template: {
+      containers: [
         {
-          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: appInsights.properties.ConnectionString
+          name: 'web'
+          image: '${image}/web:${imageTag}'
+          resources: { cpu: json('0.25'), memory: '0.5Gi' }
+          env: [{ name: 'API_UPSTREAM', value: 'https://${api.properties.configuration.ingress.fqdn}' }]
+          probes: [{ type: 'Liveness', httpGet: { path: '/healthz', port: 8080 }, periodSeconds: 15 }]
         }
+      ]
+      scale: { minReplicas: 1, maxReplicas: 3 }
+    }
+  }
+}
+
+resource migrate 'Microsoft.App/jobs@2024-03-01' = {
+  name: 'caj-iip-migrate-${environmentName}'
+  location: location
+  tags: tags
+  identity: appIdentity
+  dependsOn: [acrPull, vaultSecretsUser, postgresDatabase, postgresAllowAzure]
+  properties: {
+    environmentId: appEnvironment.id
+    workloadProfileName: 'Consumption'
+    configuration: {
+      triggerType: 'Manual'
+      replicaTimeout: 600
+      replicaRetryLimit: 1
+      manualTriggerConfig: { parallelism: 1, replicaCompletionCount: 1 }
+      registries: registries
+      secrets: vaultSecrets
+    }
+    template: {
+      containers: [
         {
-          name: 'ENVIRONMENT'
-          value: environmentName
-        }
-        {
-          name: 'KEY_VAULT_URL'
-          value: keyVault.properties.vaultUri
-        }
-        {
-          name: 'DOCUMENT_INTELLIGENCE_ENDPOINT'
-          value: docIntelligence.properties.endpoint
-        }
-        {
-          // Key Vault reference — resolves the API key via Managed Identity at runtime
-          name: 'DOCUMENT_INTELLIGENCE_KEY'
-          value: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}secrets/document-intelligence-key/)'
-        }
-        {
-          name: 'COSMOS_ENDPOINT'
-          value: cosmosDbAccount.properties.documentEndpoint
-        }
-        {
-          name: 'AZURE_STORAGE_CONNECTION_STRING'
-          value: 'https://${storageAccount.name}.blob.core.windows.net'
+          name: 'migrate'
+          image: '${image}/backend:${imageTag}'
+          command: ['iip', 'migrate']
+          resources: { cpu: json('0.25'), memory: '0.5Gi' }
+          env: backendEnv
         }
       ]
     }
   }
 }
 
-// Static Web App (React Frontend)
-resource staticWebApp 'Microsoft.Web/staticSites@2022-09-01' = {
-  name: staticWebAppName
-  location: location
-  sku: {
-    name: 'Free'
-    tier: 'Free'
-  }
-  properties: {}
-}
-
-output functionAppId string = functionApp.id
-output functionAppPrincipalId string = functionApp.identity.principalId
-output webAppId string = webApp.id
-output webAppPrincipalId string = webApp.identity.principalId
-output webAppHostName string = webApp.properties.defaultHostName
-output cosmosDbEndpoint string = cosmosDbAccount.properties.documentEndpoint
-output docIntelligenceEndpoint string = docIntelligence.properties.endpoint
-output keyVaultUri string = keyVault.properties.vaultUri
-
-// Key Vault Secrets — seed placeholder secrets that operators must replace
-// with real values before the first production deployment.
-// Snowflake credentials: set these via 'az keyvault secret set' after first deploy.
-resource secretSnowflakeAccount 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
-  name: 'snowflake-account'
-  parent: keyVault
-  properties: {
-    value: 'REPLACE_WITH_SNOWFLAKE_ACCOUNT'
-  }
-}
-
-resource secretSnowflakeUser 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
-  name: 'snowflake-user'
-  parent: keyVault
-  properties: {
-    value: 'REPLACE_WITH_SNOWFLAKE_USER'
-  }
-}
-
-resource secretSnowflakePassword 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
-  name: 'snowflake-password'
-  parent: keyVault
-  properties: {
-    value: 'REPLACE_WITH_SNOWFLAKE_PASSWORD'
-  }
-}
-
-resource secretDocIntelKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
-  name: 'document-intelligence-key'
-  parent: keyVault
-  properties: {
-    value: listKeys(docIntelligence.id, '2023-05-01').key1
-  }
-}
-
-// --- Role Assignments for Managed Identity ---
-
-var storageBlobDataContributorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
-var storageTableDataContributorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3')
-var storageQueueDataContributorRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '974c5e8b-45b9-4653-ba55-5f855dd0fb88')
-var keyVaultSecretsUserRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
-var cosmosDbDataContributorRole = '00000000-0000-0000-0000-000000000002'
-
-resource storageRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(storageAccount.id, functionApp.id, storageBlobDataContributorRole)
-  scope: storageAccount
-  properties: {
-    roleDefinitionId: storageBlobDataContributorRole
-    principalId: functionApp.identity.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource storageTableRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(storageAccount.id, functionApp.id, storageTableDataContributorRole)
-  scope: storageAccount
-  properties: {
-    roleDefinitionId: storageTableDataContributorRole
-    principalId: functionApp.identity.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource storageQueueRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(storageAccount.id, functionApp.id, storageQueueDataContributorRole)
-  scope: storageAccount
-  properties: {
-    roleDefinitionId: storageQueueDataContributorRole
-    principalId: functionApp.identity.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource keyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(keyVault.id, functionApp.id, keyVaultSecretsUserRole)
-  scope: keyVault
-  properties: {
-    roleDefinitionId: keyVaultSecretsUserRole
-    principalId: functionApp.identity.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource cosmosRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
-  name: guid(cosmosDbAccount.id, functionApp.id, cosmosDbDataContributorRole)
-  parent: cosmosDbAccount
-  properties: {
-    roleDefinitionId: resourceId('Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions', cosmosDbAccount.name, cosmosDbDataContributorRole)
-    principalId: functionApp.identity.principalId
-    scope: cosmosDbAccount.id
-  }
-}
-
-// --- Role Assignments for API Web App Managed Identity ---
-
-resource webAppStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(storageAccount.id, webApp.id, storageBlobDataContributorRole)
-  scope: storageAccount
-  properties: {
-    roleDefinitionId: storageBlobDataContributorRole
-    principalId: webApp.identity.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource webAppKeyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(keyVault.id, webApp.id, keyVaultSecretsUserRole)
-  scope: keyVault
-  properties: {
-    roleDefinitionId: keyVaultSecretsUserRole
-    principalId: webApp.identity.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource webAppCosmosRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
-  name: guid(cosmosDbAccount.id, webApp.id, cosmosDbDataContributorRole)
-  parent: cosmosDbAccount
-  properties: {
-    roleDefinitionId: resourceId('Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions', cosmosDbAccount.name, cosmosDbDataContributorRole)
-    principalId: webApp.identity.principalId
-    scope: cosmosDbAccount.id
-  }
-}
+output webUrl string = web.properties.configuration.ingress.fqdn
+output migrateJobName string = migrate.name
+output identityClientId string = identity.properties.clientId
+output keyVaultName string = vault.name
