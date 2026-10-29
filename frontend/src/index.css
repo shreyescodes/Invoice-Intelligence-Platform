@@ -1,82 +1,138 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Design tokens. Chart and status values follow the validated data-viz palette. */
+:root {
+  color-scheme: light;
+  --bg: #f6f6f4;
+  --surface: #ffffff;
+  --surface-2: #fafaf8;
+  --surface-hover: #f3f3f0;
+  --border: #e6e5e0;
+  --border-strong: #d4d3cc;
+  --ink: #111110;
+  --ink-2: #4f4e4a;
+  --ink-3: #807f79;
+  --accent: #2a78d6;
+  --accent-hover: #1c5cab;
+  --accent-soft: #eaf2fd;
+  --accent-ink: #1c5cab;
+  --good: #0ca30c;
+  --good-soft: #e9f6e9;
+  --good-ink: #006300;
+  --warning: #fab219;
+  --warning-soft: #fdf4de;
+  --warning-ink: #7a5200;
+  --serious: #ec835a;
+  --serious-soft: #fcede6;
+  --serious-ink: #9a3b14;
+  --critical: #d03b3b;
+  --critical-soft: #fbeaea;
+  --critical-ink: #a32424;
+  --neutral-soft: #f0efec;
+  --chart-series: #2a78d6;
+  --chart-series-soft: #b7d3f6;
+  --chart-grid: #e1e0d9;
+  --chart-axis: #c3c2b7;
+  --chart-label: #898781;
+  --shadow-sm: 0 1px 2px rgb(16 16 15 / 0.05);
+  --shadow-lg: 0 12px 32px -8px rgb(16 16 15 / 0.18), 0 2px 6px rgb(16 16 15 / 0.06);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #151514;
+  --surface-hover: #232321;
+  --border: #2c2c2a;
+  --border-strong: #3a3a37;
+  --ink: #f0efec;
+  --ink-2: #c3c2b7;
+  --ink-3: #8f8e88;
+  --accent: #3987e5;
+  --accent-hover: #5598e7;
+  --accent-soft: rgb(57 135 229 / 0.16);
+  --accent-ink: #86b6ef;
+  --good-soft: rgb(12 163 12 / 0.16);
+  --good-ink: #5fcf5f;
+  --warning-soft: rgb(250 178 25 / 0.14);
+  --warning-ink: #fac55a;
+  --serious-soft: rgb(236 131 90 / 0.16);
+  --serious-ink: #f0a283;
+  --critical-soft: rgb(208 59 59 / 0.18);
+  --critical-ink: #ee8a8a;
+  --neutral-soft: #262624;
+  --chart-series: #3987e5;
+  --chart-series-soft: #184f95;
+  --chart-grid: #2c2c2a;
+  --chart-axis: #383835;
+  --chart-label: #898781;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-hover: var(--surface-hover);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-good-ink: var(--good-ink);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-ink: var(--warning-ink);
+  --color-serious: var(--serious);
+  --color-serious-soft: var(--serious-soft);
+  --color-serious-ink: var(--serious-ink);
+  --color-critical: var(--critical);
+  --color-critical-soft: var(--critical-soft);
+  --color-critical-ink: var(--critical-ink);
+  --color-neutral-soft: var(--neutral-soft);
+  --shadow-card: var(--shadow-sm);
+  --shadow-pop: var(--shadow-lg);
+}
 
 @layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
   body {
-    @apply bg-[#050505] text-white antialiased;
-    letter-spacing: -0.015em; /* Mimic Apple's San Francisco tracking */
+    @apply bg-bg font-sans text-[14px] leading-5 text-ink antialiased;
+    font-feature-settings: "cv11", "ss01";
   }
-
-  h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.025em;
+  ::selection {
+    background: var(--accent-soft);
   }
-}
-
-@layer components {
-  /* Ultra-premium liquid glass materials */
-  .ios-glass {
-    @apply bg-white/[0.03] backdrop-blur-2xl backdrop-saturate-150 border border-white/10;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 8px 32px rgba(0, 0, 0, 0.5);
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
-  
-  .ios-glass-heavy {
-    @apply bg-white/[0.01] backdrop-blur-3xl backdrop-saturate-200 border border-white/[0.08];
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.03), 0 12px 40px rgba(0, 0, 0, 0.7);
-  }
-
-  /* Liquid glass interactive elements */
-  .btn-ios {
-    @apply relative overflow-hidden transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2 font-medium;
-  }
-
-  .btn-primary {
-    @apply bg-ios-blue/20 text-ios-blue border border-ios-blue/30 backdrop-blur-xl;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 0 20px rgba(10, 132, 255, 0.2);
-  }
-
-  .btn-primary:hover {
-    @apply bg-ios-blue/30 border-ios-blue/40;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2), 0 0 30px rgba(10, 132, 255, 0.4);
-  }
-
-  .btn-secondary {
-    @apply bg-white/[0.05] text-white border border-white/10 backdrop-blur-xl;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 4px 15px rgba(0, 0, 0, 0.2);
-  }
-
-  .btn-secondary:hover {
-    @apply bg-white/[0.1] border-white/20;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 4px 20px rgba(0, 0, 0, 0.3);
-  }
-
-  .btn-ghost {
-    @apply text-ios-gray hover:text-white hover:bg-white/5 rounded-full;
-  }
-
-  .glass-active {
-    @apply bg-ios-blue/15 text-ios-blue border border-ios-blue/30 backdrop-blur-xl;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 0 20px rgba(10, 132, 255, 0.15);
-  }
-
-  /* Custom Scrollbar - hidden but functional like iOS */
-  ::-webkit-scrollbar {
-    @apply w-1.5 h-1.5;
-  }
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-white/10 rounded-full;
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Page transitions */
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
