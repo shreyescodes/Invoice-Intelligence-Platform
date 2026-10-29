@@ -1,6 +1,0 @@
-api
-core
-etl
-llm
-ml
-mock_sap
