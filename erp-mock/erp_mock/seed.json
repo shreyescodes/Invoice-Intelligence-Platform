@@ -1,0 +1,209 @@
+{
+  "company": {
+    "CompanyCode": "1000",
+    "CompanyName": "Acme Manufacturing India Pvt Ltd",
+    "TaxNumber": "29AAACA4821K1Z6",
+    "Address": ["Plot 18, KIADB Industrial Area", "Doddaballapur, Bengaluru 561203", "Karnataka, India"]
+  },
+  "suppliers": [
+    {
+      "Supplier": "100010",
+      "SupplierName": "Kaveri Industrial Components Ltd",
+      "TaxNumber": "29AABCK4321P1Z9",
+      "Street": "No. 42, 3rd Phase, Peenya Industrial Area",
+      "City": "Bengaluru",
+      "PostalCode": "560058",
+      "Region": "Karnataka",
+      "PaymentTermsDays": 45,
+      "Currency": "INR",
+      "BankAccount": "HDFC Bank, A/c 50200012345671, IFSC HDFC0000523"
+    },
+    {
+      "Supplier": "100011",
+      "SupplierName": "Bluepeak Cloud Services Pvt Ltd",
+      "TaxNumber": "29AAFCB5678K1Z2",
+      "Street": "7th Floor, Prestige Tech Park, Outer Ring Road",
+      "City": "Bengaluru",
+      "PostalCode": "560103",
+      "Region": "Karnataka",
+      "PaymentTermsDays": 30,
+      "Currency": "INR",
+      "BankAccount": "ICICI Bank, A/c 002105031456, IFSC ICIC0000021"
+    },
+    {
+      "Supplier": "100012",
+      "SupplierName": "Ganesh Freight & Logistics LLP",
+      "TaxNumber": "33AAKFG2345M1Z8",
+      "Street": "14, GST Road, Guindy Industrial Estate",
+      "City": "Chennai",
+      "PostalCode": "600032",
+      "Region": "Tamil Nadu",
+      "PaymentTermsDays": 15,
+      "Currency": "INR",
+      "BankAccount": "Indian Bank, A/c 6123498701, IFSC IDIB000G014"
+    },
+    {
+      "Supplier": "100013",
+      "SupplierName": "Meridian Facility Services Pvt Ltd",
+      "TaxNumber": "07AAHCM8765Q1Z3",
+      "Street": "B-21, Okhla Industrial Area Phase II",
+      "City": "New Delhi",
+      "PostalCode": "110020",
+      "Region": "Delhi",
+      "PaymentTermsDays": 30,
+      "Currency": "INR",
+      "BankAccount": "Axis Bank, A/c 917020045612390, IFSC UTIB0000049"
+    },
+    {
+      "Supplier": "100014",
+      "SupplierName": "Orbit Telecom Solutions Pvt Ltd",
+      "TaxNumber": "24AACCO9988R1Z1",
+      "Street": "301, Shapath IV, SG Highway",
+      "City": "Ahmedabad",
+      "PostalCode": "380015",
+      "Region": "Gujarat",
+      "PaymentTermsDays": 30,
+      "Currency": "INR",
+      "BankAccount": "Kotak Mahindra Bank, A/c 4612789033, IFSC KKBK0002581"
+    },
+    {
+      "Supplier": "100015",
+      "SupplierName": "Saffron Corporate Catering",
+      "TaxNumber": "27ABFPS7766H1Z4",
+      "Street": "Unit 5, Hinjewadi Phase 1",
+      "City": "Pune",
+      "PostalCode": "411057",
+      "Region": "Maharashtra",
+      "PaymentTermsDays": 15,
+      "Currency": "INR",
+      "BankAccount": "State Bank of India, A/c 38812290017, IFSC SBIN0011234"
+    },
+    {
+      "Supplier": "100016",
+      "SupplierName": "Vertex IT Hardware Pvt Ltd",
+      "TaxNumber": "36AADCV3344L1Z6",
+      "Street": "Plot 9, HITEC City Road, Madhapur",
+      "City": "Hyderabad",
+      "PostalCode": "500081",
+      "Region": "Telangana",
+      "PaymentTermsDays": 30,
+      "Currency": "INR",
+      "BankAccount": "HDFC Bank, A/c 50200067812345, IFSC HDFC0001996"
+    },
+    {
+      "Supplier": "100017",
+      "SupplierName": "Sharda Office Supplies",
+      "TaxNumber": "27AAQFS1209D1Z7",
+      "Street": "22, Lamington Road, Grant Road East",
+      "City": "Mumbai",
+      "PostalCode": "400007",
+      "Region": "Maharashtra",
+      "PaymentTermsDays": 30,
+      "Currency": "INR",
+      "BankAccount": "Bank of Baroda, A/c 03420200001287, IFSC BARB0LAMING"
+    }
+  ],
+  "purchase_orders": [
+    {
+      "PurchaseOrder": "4500012101",
+      "Supplier": "100010",
+      "PurchaseOrderDate": "2026-09-22",
+      "DocumentCurrency": "INR",
+      "Items": [
+        {"PurchaseOrderItem": "10", "Description": "Hydraulic hose assembly 3/4 in", "OrderQuantity": "40", "Unit": "EA", "NetPrice": "1450.00", "ReceivedQuantity": "40"},
+        {"PurchaseOrderItem": "20", "Description": "Inductive proximity sensor M18", "OrderQuantity": "10", "Unit": "EA", "NetPrice": "2350.00", "ReceivedQuantity": "10"}
+      ]
+    },
+    {
+      "PurchaseOrder": "4500012102",
+      "Supplier": "100011",
+      "PurchaseOrderDate": "2026-10-01",
+      "DocumentCurrency": "INR",
+      "Items": [
+        {"PurchaseOrderItem": "10", "Description": "Managed Kubernetes cluster - Oct 2026", "OrderQuantity": "1", "Unit": "MON", "NetPrice": "48000.00", "ReceivedQuantity": "1"},
+        {"PurchaseOrderItem": "20", "Description": "Object storage 10 TB-month - Oct 2026", "OrderQuantity": "1", "Unit": "MON", "NetPrice": "9500.00", "ReceivedQuantity": "1"},
+        {"PurchaseOrderItem": "30", "Description": "Premium support plan - Oct 2026", "OrderQuantity": "1", "Unit": "MON", "NetPrice": "15000.00", "ReceivedQuantity": "1"}
+      ]
+    },
+    {
+      "PurchaseOrder": "4500012103",
+      "Supplier": "100017",
+      "PurchaseOrderDate": "2026-10-06",
+      "DocumentCurrency": "INR",
+      "Items": [
+        {"PurchaseOrderItem": "10", "Description": "A4 copier paper 75 gsm (ream)", "OrderQuantity": "100", "Unit": "RM", "NetPrice": "285.00", "ReceivedQuantity": "100"},
+        {"PurchaseOrderItem": "20", "Description": "Toner cartridge HP 26A", "OrderQuantity": "6", "Unit": "EA", "NetPrice": "4350.00", "ReceivedQuantity": "6"},
+        {"PurchaseOrderItem": "30", "Description": "Whiteboard markers (box of 10)", "OrderQuantity": "12", "Unit": "BOX", "NetPrice": "420.00", "ReceivedQuantity": "12"}
+      ]
+    },
+    {
+      "PurchaseOrder": "4500012104",
+      "Supplier": "100016",
+      "PurchaseOrderDate": "2026-10-03",
+      "DocumentCurrency": "INR",
+      "Items": [
+        {"PurchaseOrderItem": "10", "Description": "Laptop 14 in i7 / 16 GB / 512 GB SSD", "OrderQuantity": "4", "Unit": "EA", "NetPrice": "92500.00", "ReceivedQuantity": "4"},
+        {"PurchaseOrderItem": "20", "Description": "USB-C docking station", "OrderQuantity": "4", "Unit": "EA", "NetPrice": "11200.00", "ReceivedQuantity": "4"}
+      ]
+    },
+    {
+      "PurchaseOrder": "4500012105",
+      "Supplier": "100012",
+      "PurchaseOrderDate": "2026-10-05",
+      "DocumentCurrency": "INR",
+      "Items": [
+        {"PurchaseOrderItem": "10", "Description": "FTL transport Chennai to Bengaluru (32 ft)", "OrderQuantity": "6", "Unit": "TRP", "NetPrice": "28000.00", "ReceivedQuantity": "4"},
+        {"PurchaseOrderItem": "20", "Description": "Loading and unloading charges", "OrderQuantity": "6", "Unit": "TRP", "NetPrice": "3500.00", "ReceivedQuantity": "4"}
+      ]
+    },
+    {
+      "PurchaseOrder": "4500012106",
+      "Supplier": "100013",
+      "PurchaseOrderDate": "2026-10-01",
+      "DocumentCurrency": "INR",
+      "Items": [
+        {"PurchaseOrderItem": "10", "Description": "Housekeeping services - Oct 2026", "OrderQuantity": "1", "Unit": "MON", "NetPrice": "185000.00", "ReceivedQuantity": "1"}
+      ]
+    },
+    {
+      "PurchaseOrder": "4500012107",
+      "Supplier": "100014",
+      "PurchaseOrderDate": "2026-10-08",
+      "DocumentCurrency": "INR",
+      "Items": [
+        {"PurchaseOrderItem": "10", "Description": "MPLS link 100 Mbps - Oct 2026", "OrderQuantity": "1", "Unit": "MON", "NetPrice": "36000.00", "ReceivedQuantity": "1"},
+        {"PurchaseOrderItem": "20", "Description": "SD-WAN appliance supply and installation", "OrderQuantity": "1", "Unit": "EA", "NetPrice": "375000.00", "ReceivedQuantity": "1"}
+      ]
+    },
+    {
+      "PurchaseOrder": "4500012108",
+      "Supplier": "100015",
+      "PurchaseOrderDate": "2026-10-01",
+      "DocumentCurrency": "INR",
+      "Items": [
+        {"PurchaseOrderItem": "10", "Description": "Employee lunch (per plate)", "OrderQuantity": "2100", "Unit": "EA", "NetPrice": "145.00", "ReceivedQuantity": "2100"},
+        {"PurchaseOrderItem": "20", "Description": "Evening snacks (per serving)", "OrderQuantity": "1800", "Unit": "EA", "NetPrice": "60.00", "ReceivedQuantity": "1800"}
+      ]
+    },
+    {
+      "PurchaseOrder": "4500012109",
+      "Supplier": "100010",
+      "PurchaseOrderDate": "2026-10-09",
+      "DocumentCurrency": "INR",
+      "Items": [
+        {"PurchaseOrderItem": "10", "Description": "Deep groove ball bearing 6205-2RS", "OrderQuantity": "200", "Unit": "EA", "NetPrice": "185.00", "ReceivedQuantity": "200"},
+        {"PurchaseOrderItem": "20", "Description": "Pneumatic cylinder 50 x 100 mm", "OrderQuantity": "5", "Unit": "EA", "NetPrice": "4200.00", "ReceivedQuantity": "5"}
+      ]
+    },
+    {
+      "PurchaseOrder": "4500012110",
+      "Supplier": "100017",
+      "PurchaseOrderDate": "2026-10-20",
+      "DocumentCurrency": "INR",
+      "Items": [
+        {"PurchaseOrderItem": "10", "Description": "A4 copier paper 75 gsm (ream)", "OrderQuantity": "60", "Unit": "RM", "NetPrice": "285.00", "ReceivedQuantity": "60"},
+        {"PurchaseOrderItem": "20", "Description": "Whiteboard markers (box of 10)", "OrderQuantity": "10", "Unit": "BOX", "NetPrice": "420.00", "ReceivedQuantity": "10"}
+      ]
+    }
+  ]
+}
