@@ -1,106 +1,107 @@
-name: Build and Deploy
+name: Deploy to Azure
 
+# Manual, gated by the `production` environment's required reviewers. Needs a federated (OIDC)
+# credential for the repo and these secrets: AZURE_CLIENT_ID, AZURE_TENANT_ID,
+# AZURE_SUBSCRIPTION_ID, AZURE_RESOURCE_GROUP, POSTGRES_ADMIN_PASSWORD, JWT_SECRET.
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      environment_name:
+        description: "Name suffix for the Azure resources"
+        default: prod
+        required: true
 
 permissions:
   id-token: write
   contents: read
 
+concurrency:
+  group: deploy-${{ inputs.environment_name }}
+  cancel-in-progress: false
+
 jobs:
-  deploy-infra:
+  infrastructure:
     runs-on: ubuntu-latest
+    environment: production
     outputs:
-      webAppHostName: ${{ steps.deploy-bicep.outputs.webAppHostName }}
+      registry: ${{ steps.registry.outputs.loginServer }}
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Azure Login
-        uses: azure/login@v2
+      - uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          
-      - name: Deploy Bicep
-        id: deploy-bicep
+      - name: Provision the registry first (images must exist before the apps reference them)
+        id: registry
+        run: |
+          server=$(az deployment group create \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --template-file infra/registry.bicep \
+            --parameters environmentName=${{ inputs.environment_name }} \
+            --query properties.outputs.loginServer.value -o tsv)
+          echo "loginServer=$server" >> "$GITHUB_OUTPUT"
+
+  images:
+    runs-on: ubuntu-latest
+    needs: infrastructure
+    environment: production
+    strategy:
+      matrix:
+        include:
+          - { name: backend, context: backend }
+          - { name: web, context: frontend }
+          - { name: erp-mock, context: erp-mock }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - run: az acr login --name "${{ needs.infrastructure.outputs.registry }}"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: ${{ needs.infrastructure.outputs.registry }}/invoice-intelligence/${{ matrix.name }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  apps:
+    runs-on: ubuntu-latest
+    needs: [infrastructure, images]
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy infrastructure and container apps
+        id: deploy
         uses: azure/arm-deploy@v2
         with:
           scope: resourcegroup
           resourceGroupName: ${{ secrets.AZURE_RESOURCE_GROUP }}
-          template: ./infra/main.bicep
-          parameters: environmentName=prod
-
-  deploy-backend:
-    needs: deploy-infra
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      # Fix 3: FastAPI App Service package — only needs src/ and deps.
-      # Azure App Service looks for the startup command (uvicorn) and
-      # must NOT contain function_app.py or it confuses the host.
-      - name: Build FastAPI package
-        shell: bash
+          template: infra/main.bicep
+          parameters: >-
+            environmentName=${{ inputs.environment_name }}
+            imageTag=${{ github.sha }}
+            postgresAdminPassword=${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+            jwtSecret=${{ secrets.JWT_SECRET }}
+          failOnStdErr: false
+      - name: Run database migrations
         run: |
-          pushd backend
-          pip install --target=.deploy_fastapi -r <(python -c "import tomllib; deps=tomllib.load(open('pyproject.toml','rb'))['project']['dependencies']; print('\n'.join(deps))")
-          zip -r ../fastapi_package.zip src/ .deploy_fastapi/ pyproject.toml
-          popd
-
-      - name: Deploy FastAPI Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: api-inv-prod-${{ secrets.AZURE_SUFFIX }}
-          package: fastapi_package.zip
-          startup-command: "uvicorn src.api.main:app --host 0.0.0.0 --port 8000"
-
-      # Fix 3: Function App package — must include function_app.py at root.
-      # The Azure Functions host discovers functions from function_app.py.
-      - name: Deploy Function App
-        uses: azure/functions-action@v1
-        with:
-          app-name: func-inv-prod-${{ secrets.AZURE_SUFFIX }}
-          package: backend/
-
-  deploy-frontend:
-    needs: deploy-infra
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          
-      - name: Build React App
+          az containerapp job start \
+            --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ steps.deploy.outputs.migrateJobName }}"
+      - name: Smoke test
         run: |
-          cd frontend
-          npm install
-          # Inject the dynamic backend URL from the Bicep output
-          echo "VITE_API_URL=https://${{ needs.deploy-infra.outputs.webAppHostName }}" > .env.production
-          npm run build
-          
-      - name: Deploy Static Web App
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "/frontend"
-          output_location: "dist"
+          for i in $(seq 1 30); do
+            curl -fsS "https://${{ steps.deploy.outputs.webUrl }}/api/v1/meta" && exit 0
+            sleep 10
+          done
+          exit 1

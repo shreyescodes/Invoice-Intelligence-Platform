@@ -1,63 +1,152 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python package
+name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  build:
-
+  backend:
+    name: Backend (${{ matrix.database }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
-
+        database: [postgres, sqlite]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: iip_test
+          POSTGRES_USER: iip
+          POSTGRES_PASSWORD: iip
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U iip -d iip_test" --health-interval 5s --health-timeout 3s --health-retries 20
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      TEST_DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql+psycopg://iip:iip@localhost:5432/iip_test' || '' }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ./backend[dev]
-    - name: Lint with ruff and mypy
-      run: |
-        ruff check backend/
-        python -m mypy backend/src
-    - name: Test with pytest
-      env:
-        # Provide mock env vars so tests that import config don't crash
-        AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;"
-        COSMOS_ENDPOINT: "https://127.0.0.1:8081"
-        MOCK_SAP_BASE_URL: "http://127.0.0.1:8100"
-        DOCUMENT_INTELLIGENCE_ENDPOINT: "https://mock.example.com"
-        DOCUMENT_INTELLIGENCE_KEY: "mock"
-      run: |
-        pytest backend/tests/
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.6"
+          enable-cache: true
+      - run: uv sync --frozen --all-extras --python 3.12
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Type check
+        run: uv run mypy app
+      - name: Test
+        run: |
+          if [ -z "$TEST_DATABASE_URL" ]; then unset TEST_DATABASE_URL; fi
+          uv run pytest --cov --cov-report=term --cov-report=xml
+      - name: OpenAPI contract is in sync with the frontend
+        if: matrix.database == 'sqlite'
+        env:
+          JWT_SECRET: ci-openapi-export-secret-0123456789abcdef
+        run: |
+          uv run iip export-openapi --out ../frontend/openapi.json
+          git diff --exit-code ../frontend/openapi.json
 
-  deploy:
-    needs: build
+  erp-mock:
+    name: ERP mock
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      id-token: write
-      contents: read
+    defaults:
+      run:
+        working-directory: erp-mock
     steps:
-    - uses: actions/checkout@v4
-    - name: Azure login
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    - name: Deploy Infrastructure
-      run: |
-        echo "Wire up actual deploy commands once infra/main.bicep is provisioned"
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.6"
+          enable-cache: true
+      - run: uv sync --frozen --python 3.12
+      - run: uv run ruff check . && uv run ruff format --check .
+      - run: uv run pytest -q
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Generated API types match openapi.json
+        run: npm run gen:api && git diff --exit-code src/lib/schema.d.ts
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  infrastructure:
+    name: Bicep and compose validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and lint Bicep
+        run: |
+          az bicep install
+          az bicep build --file infra/registry.bicep --stdout > /dev/null
+          az bicep build --file infra/main.bicep --stdout > /dev/null
+          az bicep lint --file infra/main.bicep
+      - name: Validate docker compose
+        run: docker compose --profile observability --profile llm config --quiet
+
+  e2e:
+    name: End-to-end (docker compose)
+    runs-on: ubuntu-latest
+    needs: [backend, erp-mock, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the stack
+        run: docker compose up --build --detach --wait --wait-timeout 300 web worker
+      - name: Wait for the demo seed
+        run: |
+          docker compose up --exit-code-from seed seed
+          for i in $(seq 1 60); do
+            pending=$(docker compose exec -T postgres psql -U iip -d iip -tAc \
+              "select count(*) from jobs where status in ('queued','running')")
+            [ "$pending" = "0" ] && break
+            sleep 2
+          done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Playwright smoke tests
+        working-directory: frontend
+        env:
+          E2E_BASE_URL: http://localhost:8080
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          npx playwright test --project=e2e
+      - name: Service logs
+        if: failure()
+        run: docker compose logs --no-color --tail 200
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+          retention-days: 7
