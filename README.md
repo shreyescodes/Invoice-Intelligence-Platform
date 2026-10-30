@@ -49,10 +49,11 @@ The platform's own logic is real and tested. The systems around it are stand-ins
 
 | Part | Status |
 |---|---|
-| Extraction, validation rules, 3-way match, approval policy, segregation of duties, audit trail, job queue, retries, idempotent posting, auth, SQL guard, API, UI | **Real.** 122 backend tests, Playwright end-to-end tests; runs locally against SQLite and in CI against PostgreSQL. |
+| Extraction, validation rules, 3-way match, approval policy, segregation of duties, audit trail, job queue, retries, idempotent posting, auth, SQL guard, API, UI | **Real.** 129 backend tests, Playwright end-to-end tests; runs locally against SQLite and in CI against PostgreSQL. |
 | Extraction on documents this project didn't create | **Measured** on 115 public invoices; see [below](#extraction-accuracy-on-real-invoices). |
 | ZUGFeRD / Factur-X e-invoice reading | **Real**, exercised on 104 corpus e-invoices. |
-| ERP | **Mock.** [`erp-mock/`](erp-mock) is a small service with fictional suppliers and purchase orders. Its fields are modelled on SAP's supplier, PO and supplier-invoice objects but it is not SAP's OData API. `ErpClient` is the only piece that changes for a real ERP. |
+| ERP: ERPNext | **Real.** [`erpnext.py`](backend/app/services/erpnext.py) reads suppliers, purchase orders and goods receipts from ERPNext and posts submitted Purchase Invoices against the PO, idempotently. CI starts ERPNext v16, books a supplier, items, POs and goods receipts, and runs the pipeline against it ([test](backend/tests/integration/test_erpnext_live.py)). |
+| ERP: demo stack | **Mock.** `docker compose` uses [`erp-mock/`](erp-mock), a small SAP S/4HANA-shaped service with fictional suppliers, so the demo starts in seconds. Set `ERP_PROVIDER=erpnext` to use ERPNext instead. |
 | Demo data | **Synthetic.** Twelve months of history are generated straight into the database by `iip seed`, and the 12 sample PDFs are rendered by the project. Company names are fictional. |
 | Anomaly model | **Trained on synthetic data** (and so evaluated on it). Retrain on your own approved invoices with `iip train-anomaly --from-db`. |
 | LLM refinement, Azure Document Intelligence, Azure Blob Storage | **Adapters**, tested against recorded or fake responses, not against the live services. |
@@ -115,7 +116,7 @@ flowchart LR
     api --> store[("Document store<br/>local disk / Azure Blob")]
     worker["worker<br/>job runner"] --> pg
     worker --> store
-    worker -- "PO lookup, posting<br/>(idempotent)" --> erp["ERP API<br/>SAP S/4HANA-shaped mock"]
+    worker -- "PO lookup, posting<br/>(idempotent)" --> erp["ERP<br/>ERPNext, or SAP-shaped mock"]
     worker -. optional .-> di["Azure AI<br/>Document Intelligence"]
     worker -. optional .-> llm["LLM<br/>OpenAI / Azure OpenAI / Ollama"]
     api -. "Ask: read-only role" .-> pg
@@ -234,7 +235,9 @@ in [`backend/app/config.py`](backend/app/config.py). The important ones:
 | `STORAGE_BACKEND` | `local` | `local` or `azure_blob` (`AZURE_STORAGE_ACCOUNT_URL`, managed identity) |
 | `EXTRACTOR` | `pdf_text` | `pdf_text` or `azure_document_intelligence` (`AZURE_DI_ENDPOINT`) |
 | `LLM_PROVIDER` | `none` | `openai` (any OpenAI-compatible URL via `LLM_BASE_URL`) or `azure_openai` |
-| `ERP_BASE_URL` / `ERP_API_KEY` | mock | ERP API location and credentials |
+| `ERP_PROVIDER` | `sap_mock` | `sap_mock` (erp-mock) or `erpnext` |
+| `ERP_BASE_URL` / `ERP_API_KEY` / `ERP_API_SECRET` | mock | ERP location and credentials (an ERPNext API key and secret) |
+| `ERPNEXT_TAX_ACCOUNT` / `ERPNEXT_COMPANY` | — | ERPNext account head for invoice tax (required), and the company if the site has several |
 | `AUTO_APPROVE_LIMIT` | `250000` | Largest invoice that may be approved without a human |
 | `APPROVER_LIMIT` | `1000000` | Largest invoice an approver (not admin) may approve |
 | `ANOMALY_REVIEW_THRESHOLD` | `0.5` | Risk score at which an invoice goes to review |
@@ -246,7 +249,7 @@ in [`backend/app/config.py`](backend/app/config.py). The important ones:
 
 ```bash
 cd backend
-uv run pytest                 # 122 tests; set TEST_DATABASE_URL to run them against PostgreSQL
+uv run pytest                 # 129 tests (3 more need live ERPNext); set TEST_DATABASE_URL to run them against PostgreSQL
 uv run python -m benchmarks.realworld.run   # extraction accuracy on 115 public invoices
 uv run ruff check . && uv run ruff format --check .
 uv run mypy app               # strict mode
@@ -261,8 +264,9 @@ npm run gen:api               # regenerate TypeScript types from openapi.json
 
 [CI](.github/workflows/ci.yml) runs the backend suite on **both PostgreSQL and SQLite**, checks that the
 committed OpenAPI contract and generated client types are in sync, lints and builds the frontend,
-compiles the Bicep templates, and runs the Playwright smoke tests against the full `docker compose`
-stack.
+compiles the Bicep templates, runs the Playwright smoke tests against the full `docker compose`
+stack, scores extraction on the public invoice corpus, and runs the pipeline against a live ERPNext
+site ([`deploy/erpnext`](deploy/erpnext/compose.yml)).
 
 ## Project layout
 
@@ -272,11 +276,11 @@ backend/              FastAPI app, worker and CLI (one image, three roles)
   app/services/       extraction, validation, anomaly model, policy, pipeline, ERP client, analytics
   app/demo/           invoice PDF renderer and demo seed
   migrations/         Alembic migrations (schema + analytics views)
-  tests/              unit, API and end-to-end pipeline tests
+  tests/              unit, API and end-to-end pipeline tests; integration/ runs against live ERPNext
 erp-mock/             SAP S/4HANA-shaped supplier / PO / supplier-invoice API with idempotent posting
 frontend/             React 19 + TypeScript + Tailwind v4 SPA, nginx config, Playwright specs
 infra/                Bicep: Azure Container Apps, PostgreSQL Flexible Server, Blob, Key Vault, ACR
-deploy/               Postgres init, Prometheus rules, Grafana dashboard
+deploy/               Postgres init, Prometheus rules, Grafana dashboard, ERPNext test site
 docs/                 architecture, deployment and operations, ADRs, screenshots
 samples/invoices/     the demo PDFs
 ```
@@ -313,8 +317,9 @@ Architecture decision records: [0001 PostgreSQL instead of Cosmos DB + Snowflake
   with `iip train-anomaly --from-db` once you have a few hundred approved invoices.
 - The built-in extractor reads the PDF text layer. Scanned documents need the Azure Document
   Intelligence extractor (or another OCR adapter) and otherwise go to review.
-- The ERP is a mock. Its fields follow SAP's business objects, but a real integration (SAP OData,
-  ERPNext, Odoo…) means a new `ErpClient` implementation.
+- ERPNext is the one real ERP integration. SAP is represented only by the SAP-shaped mock; a real
+  SAP OData client would be another implementation of the `Erp` protocol. Postings to ERPNext book
+  the invoice's tax to a single account head rather than splitting CGST / SGST / IGST.
 - Login throttling is per API process. Put a shared store or the edge WAF in front for stricter limits.
 - Authentication is local accounts with JWTs; single sign-on (Entra ID / OIDC) is the natural next step.
 

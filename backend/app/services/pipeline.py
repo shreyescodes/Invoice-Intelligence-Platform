@@ -26,7 +26,7 @@ from app.models import (
 from app.observability import PIPELINE_DURATION, PIPELINE_OUTCOMES, get_logger
 from app.services import jobs
 from app.services.anomaly import AnomalyModel, HistoricalInvoice, build_features, explain
-from app.services.erp import ErpClient, ErpRejectedError
+from app.services.erp import Erp, ErpRejectedError
 from app.services.extraction import ExtractionError, ExtractionResult, InvoiceExtractor
 from app.services.invoices import invoice_number_key, record_event, transition
 from app.services.policy import evaluate_policy
@@ -48,7 +48,7 @@ class PipelineServices:
     settings: Settings
     store: DocumentStore
     extractor: InvoiceExtractor
-    erp: ErpClient
+    erp: Erp
     anomaly_model: AnomalyModel
 
 

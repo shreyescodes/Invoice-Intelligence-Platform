@@ -1,0 +1,106 @@
+# A throwaway ERPNext site for integration tests, after frappe_docker's pwd.yml.
+#   docker compose -f deploy/erpnext/compose.yml up -d
+#   docker compose -f deploy/erpnext/compose.yml wait create-site
+# ERPNext is then served on http://localhost:8180 (Administrator / admin). Never expose this setup.
+name: iip-erpnext
+
+x-erpnext: &erpnext
+  image: frappe/erpnext:v16.36.1
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+
+services:
+  db:
+    image: mariadb:11.8
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+      - --innodb-snapshot-isolation=OFF
+    environment:
+      MARIADB_ROOT_PASSWORD: admin
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db-data:/var/lib/mysql
+
+  redis-cache:
+    image: redis:6.2-alpine
+
+  redis-queue:
+    image: redis:6.2-alpine
+
+  configurator:
+    <<: *erpnext
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        ls -1 apps > sites/apps.txt;
+        bench set-config -g db_host db;
+        bench set-config -gp db_port 3306;
+        bench set-config -g redis_cache redis://redis-cache:6379;
+        bench set-config -g redis_queue redis://redis-queue:6379;
+        bench set-config -g redis_socketio redis://redis-queue:6379;
+        bench set-config -gp socketio_port 9000;
+
+  create-site:
+    <<: *erpnext
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        wait-for-it -t 120 redis-cache:6379 &&
+        wait-for-it -t 120 redis-queue:6379 &&
+        bench new-site --mariadb-user-host-login-scope='%' --admin-password=admin
+        --db-root-username=root --db-root-password=admin --install-app erpnext --set-default frontend
+
+  backend:
+    <<: *erpnext
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *erpnext
+    command: ["bench", "worker", "--queue", "long,default,short"]
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+
+  websocket:
+    <<: *erpnext
+    command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+
+  frontend:
+    <<: *erpnext
+    command: ["nginx-entrypoint.sh"]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      FRAPPE_SITE_NAME_HEADER: frontend
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMEOUT: 120
+      CLIENT_MAX_BODY_SIZE: 50m
+    ports:
+      - "8180:8080"
+    depends_on:
+      - backend
+      - websocket
+
+volumes:
+  db-data:
+  sites:
+  logs:

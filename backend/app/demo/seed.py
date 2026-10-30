@@ -37,7 +37,7 @@ from app.models import (
 from app.observability import get_logger
 from app.security import hash_password
 from app.services.anomaly import AnomalyModel, HistoricalInvoice, build_features, explain
-from app.services.erp import ErpClient, PurchaseOrder, Supplier
+from app.services.erp import Erp, PurchaseOrder, Supplier
 from app.services.invoices import InvoiceService, invoice_number_key
 from app.services.storage import DocumentStore
 from app.services.vendors import sync_vendors
@@ -268,7 +268,7 @@ class SeedReport:
 def seed_history(
     session: Session,
     store: DocumentStore,
-    erp: ErpClient,
+    erp: Erp,
     model: AnomalyModel,
     users: dict[str, User],
     report: SeedReport,
@@ -618,7 +618,7 @@ SAMPLE_ONLY: tuple[Scenario, ...] = (
 
 
 def render_scenarios(
-    erp: ErpClient, report: SeedReport, today: date, scenarios: tuple[Scenario, ...] = SCENARIOS, start: int = 1
+    erp: Erp, report: SeedReport, today: date, scenarios: tuple[Scenario, ...] = SCENARIOS, start: int = 1
 ) -> list[tuple[str, bytes]]:
     buyer = buyer_party(erp.get_company())
     suppliers = {s.erp_id: s for s in erp.list_suppliers()}
@@ -646,7 +646,7 @@ def seed(
     session: Session,
     settings: Settings,
     store: DocumentStore,
-    erp: ErpClient,
+    erp: Erp,
     model: AnomalyModel,
     *,
     history: bool = True,
@@ -674,7 +674,7 @@ def seed(
     return report
 
 
-def write_samples(erp: ErpClient, out_dir: Path, today: date | None = None) -> list[Path]:
+def write_samples(erp: Erp, out_dir: Path, today: date | None = None) -> list[Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     report = SeedReport(duplicate_numbers={"100015": "SCC-1418"})
     paths = []

@@ -13,7 +13,7 @@ This document covers how the platform is put together and why. For running and d
 | `migrate` | `iip migrate` | Alembic migrations, run once per release before new code starts. |
 | PostgreSQL | 16 | System of record: invoices, line items, check results, audit trail, users, vendors, job queue, reporting views. |
 | Document store | local disk or Azure Blob | Original documents and cached page previews, keyed by generated ids. |
-| ERP | SAP S/4HANA-shaped API (mocked here) | Supplier master, purchase orders with goods receipts, supplier-invoice posting. |
+| ERP | ERPNext, or the SAP S/4HANA-shaped mock | Supplier master, purchase orders with goods receipts, supplier-invoice posting. Chosen by `ERP_PROVIDER`; both sit behind the `Erp` protocol. |
 
 The API and the worker are the same Python package (`backend/app`). Request handlers only do quick,
 transactional work; anything slow or external (parsing PDFs, calling the ERP, scoring) happens in the
@@ -192,6 +192,11 @@ See [ADR 0002](adr/0002-database-job-queue.md) for the reasoning. Mechanics:
    permanent (unreadable document, ERP business rejection) skip the retries. A dead job parks its
    invoice in `failed` with the error and stage, and an admin can retry it from the UI.
 5. Jobs left `running` past `WORKER_LOCK_TIMEOUT_SECONDS` (a crashed worker) are requeued.
+
+With ERPNext, a posting becomes a Purchase Invoice submitted on insert and linked to the PO rows
+(`po_detail`); the idempotency key is stored in its remarks and looked up before posting. Received
+quantities come from `received_qty`, which Purchase Receipts maintain, and invoiced quantities from
+submitted Purchase Invoice rows, so the 3-way match uses ERPNext's own books.
 
 The ERP client also retries transient errors (connection failures, 5xx, 429) a few times with short
 backoff before giving up to the queue. Postings carry `Idempotency-Key: <invoice id>`, so a retry after

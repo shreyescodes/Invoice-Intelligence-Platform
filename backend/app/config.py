@@ -63,9 +63,15 @@ class Settings(BaseSettings):
     azure_openai_api_version: str = "2024-10-21"
     llm_timeout_seconds: float = 30.0
 
-    # --- ERP (SAP S/4HANA style API) ---------------------------------------------
+    # --- ERP ----------------------------------------------------------------------
+    # sap_mock: the SAP S/4HANA-shaped API of erp-mock. erpnext: a real ERPNext (v15/v16) site, where
+    # ERP_API_KEY / ERP_API_SECRET are an API user's token pair.
+    erp_provider: Literal["sap_mock", "erpnext"] = "sap_mock"
     erp_base_url: str = "http://localhost:8100"
     erp_api_key: SecretStr = SecretStr("dev-erp-key")
+    erp_api_secret: SecretStr | None = None
+    erpnext_company: str | None = None  # defaults to the site's only company
+    erpnext_tax_account: str | None = None  # account head for the invoice's tax, e.g. "Input GST - AMI"
     erp_timeout_seconds: float = 10.0
     vendor_sync_interval_seconds: int = 600
 
@@ -111,6 +117,8 @@ class Settings(BaseSettings):
                 raise ValueError("DEMO_MODE must be disabled in production")
         if len(self.jwt_secret.get_secret_value()) < 32:
             raise ValueError("JWT_SECRET must be at least 32 characters")
+        if self.erp_provider == "erpnext" and (self.erp_api_secret is None or not self.erpnext_tax_account):
+            raise ValueError("ERP_PROVIDER=erpnext needs ERP_API_SECRET and ERPNEXT_TAX_ACCOUNT")
         return self
 
 

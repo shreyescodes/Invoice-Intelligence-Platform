@@ -6,7 +6,7 @@ from functools import lru_cache
 
 from app.config import Settings, get_settings
 from app.services.anomaly import AnomalyModel, load_or_train
-from app.services.erp import ErpClient
+from app.services.erp import build_erp_client
 from app.services.extraction import build_extractor
 from app.services.llm import LLMClient, build_llm_client
 from app.services.pipeline import PipelineServices
@@ -34,6 +34,6 @@ def build_pipeline_services(settings: Settings | None = None) -> PipelineService
         settings=settings,
         store=get_document_store(),
         extractor=build_extractor(settings, get_llm()),
-        erp=ErpClient.from_settings(settings),
+        erp=build_erp_client(settings),
         anomaly_model=get_anomaly_model(),
     )

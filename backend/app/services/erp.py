@@ -1,4 +1,5 @@
-"""Client for the ERP's supplier, purchase-order and supplier-invoice APIs (SAP S/4HANA shaped)."""
+"""ERP clients: the domain types the pipeline works with, a resilient HTTP base, and the client for the
+SAP S/4HANA-shaped API served by erp-mock. The ERPNext client lives in erpnext.py."""
 
 from __future__ import annotations
 
@@ -7,7 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Any, Protocol
 from urllib.parse import quote
 
 import httpx
@@ -116,11 +117,24 @@ def _purchase_order(raw: dict[str, Any]) -> PurchaseOrder:
     )
 
 
-class ErpClient:
+class Erp(Protocol):
+    def list_suppliers(self) -> list[Supplier]: ...
+    def get_supplier(self, erp_id: str) -> Supplier | None: ...
+    def get_company(self) -> dict[str, Any]: ...
+    def list_purchase_orders(self, supplier_id: str | None = None) -> list[PurchaseOrder]: ...
+    def get_purchase_order(self, number: str) -> PurchaseOrder | None: ...
+    def post_supplier_invoice(self, idempotency_key: str, payload: dict[str, Any]) -> PostingResult: ...
+    def ping(self) -> None: ...
+    def close(self) -> None: ...
+
+
+class HttpErp:
+    """HTTP plumbing shared by the ERP clients: timeouts, metrics and quick retries."""
+
     def __init__(
         self,
         base_url: str,
-        api_key: str,
+        headers: dict[str, str],
         timeout: float = 10.0,
         transport: httpx.BaseTransport | None = None,
         attempts: int = 3,
@@ -130,14 +144,10 @@ class ErpClient:
         self.backoff_seconds = backoff_seconds
         self._http = httpx.Client(
             base_url=base_url.rstrip("/"),
-            headers={"X-API-Key": api_key, "Accept": "application/json"},
+            headers={"Accept": "application/json", **headers},
             timeout=httpx.Timeout(timeout, connect=min(timeout, 5.0)),
             transport=transport,
         )
-
-    @classmethod
-    def from_settings(cls, settings: Settings) -> ErpClient:
-        return cls(settings.erp_base_url, settings.erp_api_key.get_secret_value(), settings.erp_timeout_seconds)
 
     def close(self) -> None:
         self._http.close()
@@ -172,6 +182,25 @@ class ErpClient:
             return str(response.json().get("detail", response.text))
         except ValueError:
             return response.text
+
+
+class ErpClient(HttpErp):
+    """SAP S/4HANA-shaped API (erp-mock)."""
+
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        timeout: float = 10.0,
+        transport: httpx.BaseTransport | None = None,
+        attempts: int = 3,
+        backoff_seconds: float = 0.5,
+    ) -> None:
+        super().__init__(base_url, {"X-API-Key": api_key}, timeout, transport, attempts, backoff_seconds)
+
+    @classmethod
+    def from_settings(cls, settings: Settings) -> ErpClient:
+        return cls(settings.erp_base_url, settings.erp_api_key.get_secret_value(), settings.erp_timeout_seconds)
 
     def list_suppliers(self) -> list[Supplier]:
         response = self._call("list_suppliers", lambda: self._http.get("/api/suppliers"))
@@ -226,3 +255,11 @@ class ErpClient:
 
     def ping(self) -> None:
         self._call("health", lambda: self._http.get("/health")).raise_for_status()
+
+
+def build_erp_client(settings: Settings) -> Erp:
+    if settings.erp_provider == "erpnext":
+        from app.services.erpnext import ErpNextClient
+
+        return ErpNextClient.from_settings(settings)
+    return ErpClient.from_settings(settings)

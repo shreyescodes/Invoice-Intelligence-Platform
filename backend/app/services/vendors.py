@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.db import utcnow
 from app.models import Vendor
 from app.observability import get_logger
-from app.services.erp import ErpClient
+from app.services.erp import Erp
 
 log = get_logger(__name__)
 
@@ -57,7 +57,7 @@ def match_vendor(session: Session, name: str | None, tax_id: str | None) -> Vend
     return VendorMatch(None, None)
 
 
-def sync_vendors(session: Session, erp: ErpClient) -> int:
+def sync_vendors(session: Session, erp: Erp) -> int:
     """Upsert the ERP supplier master into the local vendor table. Returns the number of vendors seen."""
     suppliers = erp.list_suppliers()
     existing = {v.erp_id: v for v in session.scalars(select(Vendor))}
