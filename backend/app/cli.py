@@ -16,7 +16,15 @@ def _migrate(_: argparse.Namespace) -> None:
     from alembic import command
     from alembic.config import Config
 
-    config = Config(str(Path(__file__).resolve().parent.parent / "alembic.ini"))
+    # Non-editable installs (the container image) put the package in site-packages, away from alembic.ini.
+    candidates = [
+        Path(os.environ.get("ALEMBIC_CONFIG", "alembic.ini")),
+        Path(__file__).resolve().parent.parent / "alembic.ini",
+    ]
+    ini = next((c for c in candidates if c.is_file()), None)
+    if ini is None:
+        sys.exit("alembic.ini not found; run from the backend directory or set ALEMBIC_CONFIG.")
+    config = Config(str(ini))
     config.attributes["configure_logger"] = False
     command.upgrade(config, "head")
     print("Database is at the latest revision.")
@@ -48,11 +56,11 @@ def _create_user(args: argparse.Namespace) -> None:
 def _sync_vendors(_: argparse.Namespace) -> None:
     from app.config import get_settings
     from app.db import session_scope
-    from app.services.erp import ErpClient
+    from app.services.erp import build_erp_client
     from app.services.vendors import sync_vendors
 
     with session_scope() as session:
-        count = sync_vendors(session, ErpClient.from_settings(get_settings()))
+        count = sync_vendors(session, build_erp_client(get_settings()))
     print(f"Synchronised {count} vendors from the ERP.")
 
 
@@ -138,9 +146,9 @@ def _seed(args: argparse.Namespace) -> None:
 def _samples(args: argparse.Namespace) -> None:
     from app.config import get_settings
     from app.demo.seed import write_samples
-    from app.services.erp import ErpClient
+    from app.services.erp import build_erp_client
 
-    for path in write_samples(ErpClient.from_settings(get_settings()), Path(args.out)):
+    for path in write_samples(build_erp_client(get_settings()), Path(args.out)):
         print(path)
 
 
