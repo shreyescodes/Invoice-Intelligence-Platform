@@ -27,6 +27,7 @@ dependencies = [
     "sqlglot>=25.30",
     "structlog>=24.4",
     "prometheus-client>=0.21",
+    "defusedxml>=0.7.1",
 ]
 
 [project.optional-dependencies]
@@ -53,6 +54,7 @@ dev = [
     "mypy>=1.13",
     "reportlab>=4.2",
     "openai>=1.54",
+    "types-defusedxml>=0.7.0.20260504",
 ]
 
 [build-system]
@@ -81,7 +83,9 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S105", "S106", "S311", "S608", "DTZ", "PT018"]
 "app/demo/**" = ["S311"]
+"app/services/extraction/**" = ["RUF001"]  # typographic apostrophes in French labels are intentional
 "app/cli.py" = ["T20"]
+"benchmarks/**" = ["T20", "S310"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

@@ -17,6 +17,14 @@ import { formatDate, formatDateTime, formatMoney, formatPercent, formatRelative,
 import { useDecision, useInvoice, useMeta } from "@/lib/queries";
 import { CHECK_LABELS, CHECK_STATUS, riskLevel, STATUS, TONE_CLASSES } from "@/lib/status";
 
+const EXTRACTION_METHOD: Record<string, string> = {
+  pdf_text: "PDF text layer",
+  "pdf_text+llm": "PDF text layer, refined by LLM",
+  embedded_cii: "Embedded e-invoice (ZUGFeRD / Factur-X)",
+  azure_document_intelligence: "Azure Document Intelligence",
+  "azure_document_intelligence+llm": "Azure Document Intelligence, refined by LLM",
+};
+
 const EVENT_LABEL: Record<string, string> = {
   uploaded: "Uploaded",
   processing_started: "Processing started",
@@ -247,7 +255,7 @@ function Summary({ invoice }: { invoice: InvoiceDetail }) {
         title="Extracted data"
         description={
           invoice.extraction_method
-            ? `${invoice.extraction_method === "pdf_text" ? "PDF text layer" : humanize(invoice.extraction_method)} · ${formatPercent(
+            ? `${EXTRACTION_METHOD[invoice.extraction_method] ?? humanize(invoice.extraction_method)} · ${formatPercent(
                 invoice.extraction_confidence,
                 0,
               )} confidence`
