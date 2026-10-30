@@ -1,0 +1,1152 @@
+[
+ {
+  "id": "AmazonWebServices",
+  "corpus": "invoice2data",
+  "producer": "AmazonWebServices",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/AmazonWebServices.pdf",
+  "sha256": "2e21d50f59a97b8c3778b238d14c9d7d15f74b8d021f819f1d2ede1f5412f81b",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/AmazonWebServices.json",
+  "truth_sha256": "42ebf972155db2d874756c7778d434f65ab76cc574953999f46f923bda1f0e43"
+ },
+ {
+  "id": "AzureInterior",
+  "corpus": "invoice2data",
+  "producer": "AzureInterior",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/AzureInterior.pdf",
+  "sha256": "0dc290329d39b3855d9893c1623074282d18aeb66fc30506f5f51c19cb2d7f2b",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/AzureInterior.json",
+  "truth_sha256": "5264782db7f10d2b2fc689cdc9e109c1923a250399ffb015df1331cf8a9f6e66"
+ },
+ {
+  "id": "FlipkartInvoice",
+  "corpus": "invoice2data",
+  "producer": "FlipkartInvoice",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/FlipkartInvoice.pdf",
+  "sha256": "d57921532b83c0b622432324e98e8c8a566c44a6a3367b9f7862af10d7c97580",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/FlipkartInvoice.json",
+  "truth_sha256": "159ecc662e2cc51c72e62abf2e5fa54b956e4fcdef6d5c67a68e33746a1bc3d5"
+ },
+ {
+  "id": "NetpresseInvoice",
+  "corpus": "invoice2data",
+  "producer": "NetpresseInvoice",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/NetpresseInvoice.pdf",
+  "sha256": "c7711ffe4f0c820d2bc3f1d15e0f5075b8cf3e9c831401beaa9cc36760ec11fc",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/NetpresseInvoice.json",
+  "truth_sha256": "4a9c2cb0bdca15179b13e3ea65563d55fa58a3f6be784d2dceb515dd84482cc3"
+ },
+ {
+  "id": "QualityHosting",
+  "corpus": "invoice2data",
+  "producer": "QualityHosting",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/QualityHosting.pdf",
+  "sha256": "e33124038dfb87cc5a4d93320f8a482561a72a179413cae3c569c7513f0c3bed",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/QualityHosting.json",
+  "truth_sha256": "02ccffd3610827ca1d23bfbd3c826227b4cd36faa51f7aec314577d30e1c3305"
+ },
+ {
+  "id": "SammyMaystoneLinesTest",
+  "corpus": "invoice2data",
+  "producer": "SammyMaystoneLinesTest",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/SammyMaystoneLinesTest.pdf",
+  "sha256": "f014ddfa83dd456ca89643fe8f3ca6579e32f68839970a408fd85fffe343afe8",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/SammyMaystoneLinesTest.json",
+  "truth_sha256": "3f811d27cf77074a5aba62eec286a893f3a757e5562ce95b83ccdfcb5f194cec"
+ },
+ {
+  "id": "coolblue1",
+  "corpus": "invoice2data",
+  "producer": "coolblue1",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/coolblue1.pdf",
+  "sha256": "3932539b71338f0c73d6ade499a2a00cd2f9056c60f5a87b1ef623af095e1607",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/coolblue1.json",
+  "truth_sha256": "7f7f60c0d75a0a05959b3ea72d3d6ee2089560f23146b91c7757e6a14c8e59f0"
+ },
+ {
+  "id": "coolblue2",
+  "corpus": "invoice2data",
+  "producer": "coolblue2",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/coolblue2.pdf",
+  "sha256": "ebf3e41e3bd322352099a81611a7d4d7a52fe9802b45eebe7df45674bbfb093c",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/coolblue2.json",
+  "truth_sha256": "70d9b519fbdfabc24408774a07277766fa38ee002640eb69734878428834e307"
+ },
+ {
+  "id": "free_fiber",
+  "corpus": "invoice2data",
+  "producer": "free_fiber",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/free_fiber.pdf",
+  "sha256": "a3701f395925c3797845d469365c2764a717453baee53c6df07a3cf20267bfa2",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/free_fiber.json",
+  "truth_sha256": "d9cebe4918a30ca47471ac392d1cf73dd3d4ae0c172d897eca28ed1d1d03caf9"
+ },
+ {
+  "id": "oyo",
+  "corpus": "invoice2data",
+  "producer": "oyo",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/oyo.pdf",
+  "sha256": "ca0ca71b47446882fecacabe4415d32e67849f9fd96f427d20252b99a388ae8a",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/oyo.json",
+  "truth_sha256": "59eed56aa0d55bf69a7adb550050baf473b2be836c85d86d41a4d332341f9134"
+ },
+ {
+  "id": "saeco",
+  "corpus": "invoice2data",
+  "producer": "saeco",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/saeco.pdf",
+  "sha256": "67f89ff5db4bc45d35d7e747d864348cc702c3c3993359756df1bc78a939ca70",
+  "truth_url": "https://raw.githubusercontent.com/invoice-x/invoice2data/643eec75dfaa15d7fbbcf7f93017f213d1c3e9fa/tests/compare/saeco.json",
+  "truth_sha256": "beb7d3691d8e021c88a0f6a078d985c4e4d4223aa10eac1510664de0c8bc65a0"
+ },
+ {
+  "id": "z000",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_1_Teilrechnung.pdf",
+  "sha256": "2860b42bc34b589328414d6c60564b5761b1cad6bb3269e0a34ca9bdc61f3821",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z001",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_2_Teilrechnung.pdf",
+  "sha256": "a3e4f0a6d2f08a79e2cc089884154211395abe58e8cb727b68e10ecd98cedb3f",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z002",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_AbweichenderZahlungsempf.pdf",
+  "sha256": "3ae7399e78fef5104874adaacd6bf3eb3331c804457127390e8474309164aee7",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z003",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Betriebskostenabrechnung.pdf",
+  "sha256": "172abe29f3caad5bb2c51650dff823c858b7879b4d17e4a3afb5cb8e989b1fd8",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z004",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Einfach.pdf",
+  "sha256": "a472032f5252ecf4d448905a2f06b33b6ea7a04218761606d0c6b28c293952ac",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z005",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Einfach_DueDate.pdf",
+  "sha256": "439bdadafa48810a084317e955979060b9ead0658c66df9157bd3d9de2ecbde1",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z006",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Einfach_negativePaymentDue.pdf",
+  "sha256": "0520a1ee26879def9cd7409ca9faa505616012630eb46c472f7dcea2a05cdec5",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z007",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Elektron.pdf",
+  "sha256": "42bc65297ba88689bd3facb383641579b9b36a697b828deb03f984263fe2a3d0",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z008",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_ElektronischeAdresse.pdf",
+  "sha256": "beb33bb9148f5a7de0f8d97a4a731afa2b64fb9f9663bfd942d1a4e90919c7cf",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z009",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Gutschrift.pdf",
+  "sha256": "e08975697d1ea06be5c96765bf5e610cc5aeb1abc3509c518399ca988d7a5999",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z010",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Haftpflichtversicherung_Versicherungssteuer.pdf",
+  "sha256": "2031b29225261af8de73427baef8131eefe9d63cd69da527ca2714b3c43c87c3",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z011",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Innergemeinschaftliche_Lieferungen.pdf",
+  "sha256": "179e53af5569e919730ee03761af94f7c47f1b66ab2a4ecadcb68257997a6dd9",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z012",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Kraftfahrversicherung_Bruttopreise.pdf",
+  "sha256": "a81e682a3ac3fd6ea2553edef7faaddfd9dfc4de49c03bf1be8f7681342db014",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z013",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Miete.pdf",
+  "sha256": "11537486d08e57c64473382cacb6cd2d4ea387320d93967764bcb4cf05c9422a",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z014",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_OEPNV.pdf",
+  "sha256": "81edf24c6a6dc44eec6bae9a11d350abce51e3c5c26da797751881a91fe0dde0",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z015",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Physiotherapeut.pdf",
+  "sha256": "bb26ec70072aa4f6b2ee2efa3ce6e3a35532ec3936a7b99d28b0356759df747f",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z016",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Rabatte.pdf",
+  "sha256": "cb71ee7de391c4cecd01a799da0ecb3bac74450e627cfecb8127e933fb87edee",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z017",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_RechnungsUebertragung.pdf",
+  "sha256": "a27aafe6a40a7fc062877a078d220bf78baa5f87c11f03b4d11bb6e6d33835f1",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z018",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Rechnungskorrektur.pdf",
+  "sha256": "dfc9aad8d1852375a7c6f766d41f3d86ae6b1f743a6a7f7107bdd9a69281b8d5",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z019",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Reisekostenabrechnung.pdf",
+  "sha256": "e767f4be926511e9eea2f29c1029b4b649851030b5cff9f67ca0fd07553192ca",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z020",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_SEPA_Prenotification.pdf",
+  "sha256": "16ec06ca1e0a60be4c63e70854a34e72f64c8b3da448720f1795ce2854ebef3d",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z021",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/EN16931_Sachversicherung_berechneter_Steuersatz.pdf",
+  "sha256": "4f7858e200edd5764f5eb98e21c404e20f7e93badc0d490cd10d297a2510bc01",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z022",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/XRECHNUNG_Betriebskostenabrechnung.pdf",
+  "sha256": "899ddecaaeb2eca0dd8de5f2ec4a2d38748713a8c5d4424a22756700fb16df5d",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z023",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/XRECHNUNG_Einfach.pdf",
+  "sha256": "3fedc66a282b885c2f15086ae08166fd6fc39cb248f1ec11ba1dd844c25dfe4b",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z024",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/XRECHNUNG_Elektron.pdf",
+  "sha256": "9e831d638d5104b865988141517012a406d5939e0795efd8d476ba4e7dc778f8",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z025",
+  "corpus": "zugferd",
+  "producer": "XML-Rechnung",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/XML-Rechnung/FX/XRECHNUNG_Reisekostenabrechnung.pdf",
+  "sha256": "a9852d1627466220f91c05159f9b6f4986d4242a6586031c44dd182a530bd2c6",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z026",
+  "corpus": "zugferd",
+  "producer": "FNFE-factur-x-examples",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/FNFE-factur-x-examples/Avoir_FR_type381_BASIC.pdf",
+  "sha256": "d7bf31284824e3f1c10d24358b944cfefb6fd4fe470d80a13c21b2945aa443f3",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z027",
+  "corpus": "zugferd",
+  "producer": "FNFE-factur-x-examples",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/FNFE-factur-x-examples/Facture_DOM_BASICWL.pdf",
+  "sha256": "1e6596b80c2bb7ecae8fcb824b2c25ef2ef01a4be6c476fbd4fd1988efdf25ef",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z028",
+  "corpus": "zugferd",
+  "producer": "FNFE-factur-x-examples",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/FNFE-factur-x-examples/Facture_DOM_MINIMUM.pdf",
+  "sha256": "106fde3e66bb4e6acb622884e7752f61a29939ec3d13cd9b3646bac34fd09ec3",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z029",
+  "corpus": "zugferd",
+  "producer": "FNFE-factur-x-examples",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/FNFE-factur-x-examples/Facture_FR_BASICWL.pdf",
+  "sha256": "2e783dddb6bb77166d65057138826b6cbe96178afe11ee33e6d60c9679809b6e",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z030",
+  "corpus": "zugferd",
+  "producer": "FNFE-factur-x-examples",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/FNFE-factur-x-examples/Facture_FR_MINIMUM.pdf",
+  "sha256": "4a5cae3869f72af291800dfc5acb8333fbdda0b080b13b0320e72be0f8c429ee",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z031",
+  "corpus": "zugferd",
+  "producer": "FNFE-factur-x-examples",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/FNFE-factur-x-examples/Facture_UE_BASICWL.pdf",
+  "sha256": "0032df4a6e06d06a8431741d401c349a9ba72d05281451ad50737b56352eacd4",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z032",
+  "corpus": "zugferd",
+  "producer": "FNFE-factur-x-examples",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/FNFE-factur-x-examples/Facture_UE_MINIMUM.pdf",
+  "sha256": "a98e340871b6864357ea09294efa662fc063e39c990c35afb8fe535e24fc3ab5",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z033",
+  "corpus": "zugferd",
+  "producer": "Mustangproject",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/Mustangproject/MustangGnuaccountingBeispielRE-20190610_507.pdf",
+  "sha256": "0c83a0ee452ba819a9fe8f2c180f578171b00f4cac5b1b419446d92818796e55",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z034",
+  "corpus": "zugferd",
+  "producer": "Mustangproject",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/Mustangproject/MustangGnuaccountingBeispielRE-20201121_508.pdf",
+  "sha256": "ed0291114a1dae7070fb6c242e217705edccbefc006c750a79e028ddd99ccdb6",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z035",
+  "corpus": "zugferd",
+  "producer": "Mustangproject",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/Mustangproject/MustangGnuaccountingBeispielRE-20201121_508_withBOM.pdf",
+  "sha256": "600cc8673e0c40023886d61e3c7d742de17b179e32b489c8d965aeaedb4606c9",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z036",
+  "corpus": "zugferd",
+  "producer": "PHP_@gpFacturX",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/PHP_%40gpFacturX/sample_inofficial_20190125_atgp_factur-x_v_1_0.pdf",
+  "sha256": "0f854894d28dc178e4f60ab4340ea5e2d907f3eaba0126b0a344f8f8f2f4745c",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z037",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/BASIC/zugferd_2p0_BASIC_Einfach.pdf",
+  "sha256": "100de8b9820b05cc6c11c18aea106970f280d6a976d067c64d76c5d765b65df4",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z038",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/BASIC/zugferd_2p0_BASIC_Rechnungskorrektur.pdf",
+  "sha256": "58ce090258ded62a304c389c05f7c80d53bae55c1af4fd2f559def8c1d345542",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z039",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/BASIC/zugferd_2p0_BASIC_Taxifahrt.pdf",
+  "sha256": "35279c6b5f3a9d944d74eb04b4f224304a1997b4f9f839e9bed528aa18ced0f8",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z040",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_1_Teilrechnung.pdf",
+  "sha256": "34ddc1a5b6f4412a6dfdf758441f45e7183b1f3a25079ce074efa6969d3699d3",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z041",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_2_Teilrechnung.pdf",
+  "sha256": "ac6539633c69713a5ccd35498c5ebd9a5bcbe24cd2b27f1a9076ab1abc5043e6",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z042",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_AbweichenderZahlungsempf.pdf",
+  "sha256": "8003c5e3c0b0d4deaddbab60ecce6de4decf19b8a2a9ffcc1f8919ec67a744fc",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z043",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Betriebskostenabrechnung.pdf",
+  "sha256": "d75a6f9c99f1408c4b76ef667c9fc91fa80f41561968ff24900ebbe7d2dbe188",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z044",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Einfach.pdf",
+  "sha256": "29842457f57143aba5da78fdf390aba773c965e60b1caab93dfff3e9d4c802f4",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z045",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Elektron.pdf",
+  "sha256": "424e699396e34b1d11e82be44fdc119652753e729e50931f57e97fd0a4b0d8ab",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z046",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_ElektronischeAdresse.pdf",
+  "sha256": "c0aaa3578c26cbaa72efb1b2c96617208b565e4d82605cefecc0926ad2afdf6b",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z047",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Gutschrift.pdf",
+  "sha256": "0f937c618721e042306c0eb8999d9f010a65368ce440452ba4e003e0010dbb97",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z048",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Haftpflichtversicherung_Versicherungssteuer.pdf",
+  "sha256": "f457c3cc96547285c965519707a3981ca16b4eda3887afc033b626aa7723953b",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z049",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Innergemeinschaftliche_Lieferungen.pdf",
+  "sha256": "0e568ce4ef080d725677434c018fc1fce6a08a0088ca5f7416b64287cc0cad12",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z050",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Kraftfahrversicherung_Bruttopreise.pdf",
+  "sha256": "73e33a53462da6a7059405526757cd4c0901e170d5db432ebf05413cced8fed2",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z051",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Miete.pdf",
+  "sha256": "55057c1125d84d920006f6ddedb78de07a3a02f2a65aa02e6e06e6eb18a2376f",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z052",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_OEPNV.pdf",
+  "sha256": "c54d606b7187a3bfa515b03e1a951170cd29952e300ad5baba80b44b5b1eef77",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z053",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Physiotherapeut.pdf",
+  "sha256": "f5fe9da119865a4cd4272939441519af25e266f4901ce891ef2201d1a396492f",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z054",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Rabatte.pdf",
+  "sha256": "b89bb512b6d2fb8d1294f97b5d3aa60c778b0e1a6ee002b7798c4ff622866428",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z055",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_RechnungsUebertragung.pdf",
+  "sha256": "d008b85fafe0612470c13494ac821755db73af2f700008c6837023bb969740ca",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z056",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Rechnungskorrektur.pdf",
+  "sha256": "3e60b131aa503ce306dbc453ba2c635225c8d5ee4cda9129e6e8e32edece290e",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z057",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Reisekostenabrechnung.pdf",
+  "sha256": "e04102795ab26604e030328c135b31a9e89e870828b4b7469a10ef643945a073",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z058",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_SEPA_Prenotification.pdf",
+  "sha256": "68ddf63a47bee204fded880823c3f5fe2bc82727eae0e88c764ab22cfdec87eb",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z059",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EN16931/zugferd_2p0_EN16931_Sachversicherung_berechneter_Steuersatz.pdf",
+  "sha256": "0c2978fae45a38a3707c62253d16b1ad5438c81428c01cc04edbd254c9e6e297",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z060",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EXTENDED/zugferd_2p0_EXTENDED_Fremdwaehrung.pdf",
+  "sha256": "c84b025345046f7b8300db4220d1a35f273b358c2598c9991b281d678e596c0a",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z061",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EXTENDED/zugferd_2p0_EXTENDED_InnergemeinschLieferungMehrereBestellungen.pdf",
+  "sha256": "878ec8bc0348ec716d2528209322e26befbf44cf901a82534a5e5e3b904caf95",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z062",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EXTENDED/zugferd_2p0_EXTENDED_Kostenrechnung.pdf",
+  "sha256": "0479dd79164cde766ad4d61872f7e66c88a8dd36f4c8a80d288b049c8be39340",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z063",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EXTENDED/zugferd_2p0_EXTENDED_Rechnungskorrektur.pdf",
+  "sha256": "b238c935b4b1affe09ef3fb4c7e26a8436da460caa4bc3a3f413442dcabce75e",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z064",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/EXTENDED/zugferd_2p0_EXTENDED_Warenrechnung.pdf",
+  "sha256": "a2780c73aa532cd1983fef64e1445bcaf1a6dd64f3233b946a13e957de22b69c",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z065",
+  "corpus": "zugferd",
+  "producer": "intarsys",
+  "split": "dev",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/intarsys/MINIMUM/zugferd_2p0_MINIMUM.pdf",
+  "sha256": "23accc25e6216567c48ac02451c6cc881cb15ff47323cdcff5566c9e6da5f574",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z066",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/BASIC%20WL/zugferd_2p1_BASIC-WL_Buchungshilfe.pdf",
+  "sha256": "9e7d5b54d4a8c0aca62af11eaeeac940dcf4b3832d4b6b507976c6be1f82cd15",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z067",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/BASIC%20WL/zugferd_2p1_BASIC-WL_Einfach.pdf",
+  "sha256": "562b9e042dec9e3174659524b076d08eaf8a93a1d7bcc0accb8cbce6d8b7b738",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z068",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/BASIC/zugferd_2p1_BASIC_Einfach.pdf",
+  "sha256": "71a075222cf67126de4ce0dfc6430d35a08786dbb9d78af8176e4c17dcab8d30",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z069",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/BASIC/zugferd_2p1_BASIC_Rechnungskorrektur.pdf",
+  "sha256": "3aaa467e027339af44be2ceef8c9ffb3ea4b6d5eeac3f66c7414c1dc2126001e",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z070",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/BASIC/zugferd_2p1_BASIC_Taxifahrt.pdf",
+  "sha256": "d5c6860f67c9b0091553bb66ad75a310580187d02c3477f3cd5971deec8fc66b",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z071",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_1_Teilrechnung.pdf",
+  "sha256": "b2e7c76fdf013ef86172eb78c3545724d4d54845dbb350d3909c4437fb5a3d29",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z072",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_2_Teilrechnung.pdf",
+  "sha256": "b0bb0488fd9bb01462f93487359c8809a4134b55171beab78c07c1c12fa61eb5",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z073",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_AbweichenderZahlungsempf.pdf",
+  "sha256": "a4b903d4e508a80d65276f030d0fbeab5081d62c2c2b19ffd2f13bcdae37c564",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z074",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Betriebskostenabrechnung.pdf",
+  "sha256": "2be632a7cf887fbe8a1347d236e66ccd40372872aff7025a870828d22836a3f9",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z075",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Betriebskostenabrechnung_XRechnung_embedded.pdf",
+  "sha256": "36739ca6bca7a5d1e045ee0674b12dcd3b3312ac6861a9c8aad7b9b603ed04fe",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z076",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Einfach.pdf",
+  "sha256": "87e20637c9bf0ce3b38dcd0500eaeadc5cd3d6812c8f4f37ea2ad4a6ea14e1f7",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z077",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Einfach_DueDate.pdf",
+  "sha256": "0c590bb9a704aa83a88f92362c0a0cbbddaa5ebe5066547d55979b119b4eb9ca",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z078",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Einfach_negativePaymentDue.pdf",
+  "sha256": "aba4ffcb666b9f9d42629a075cfd301d2e9fb2a234725223cc195d24d056b94b",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z079",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Elektron.pdf",
+  "sha256": "41ed2459768ac0585b4119d776c56915f7814160ae51c4dac1f0e93d3d1e29dd",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z080",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Elektron_XRechnung.pdf",
+  "sha256": "d05d9f4d5ac566ff2b901ed2bb3b9e01edd82397ad37e5a30a2e1502895da1c5",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z081",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Elektron_embedded.pdf",
+  "sha256": "977f7b82fee8ecc2a5dc561404650110152720947ebdf74752b0d6109f72d009",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z082",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_ElektronischeAdresse.pdf",
+  "sha256": "e0d787c40c6f0f166a8ecc0fe71d8b4cd883f73f42135794db038e1784d9698a",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z083",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Gutschrift.pdf",
+  "sha256": "949aafe31f572b7177761f72bc64f10e03ee0a182d97f7c3e3171b02a6205642",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z084",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Haftpflichtversicherung_Versicherungssteuer.pdf",
+  "sha256": "6830ca044a99509ada226e0e619ea1f76ee341292d89357eefb6df9c9bae8590",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z085",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Innergemeinschaftliche_Lieferungen.pdf",
+  "sha256": "23826d62909838468f6b1b0ae6557a0b700211eb4b5863e631c848a2e9812137",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z086",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Kraftfahrversicherung_Bruttopreise.pdf",
+  "sha256": "46ad9278ca28dd139db22e371344314a0120104a4e7051161047fe531a4fdee3",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z087",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Miete.pdf",
+  "sha256": "04264e3da114d0add15370149ebcdb3d7712da612aea2f1eb387e292633d161d",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z088",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_OEPNV.pdf",
+  "sha256": "0eda8c89d767a877d4fc0d2b20c5d52b37fec5be946779c700961d0baea31692",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z089",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Physiotherapeut.pdf",
+  "sha256": "21e62dc063424423fd3b18bce76c1b8994d12b074b36e1960e6c7daa0494d98d",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z090",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Rabatte.pdf",
+  "sha256": "787d59738b0e9e2e2e99306fc17596ebff6793ab8afb82d9c582649055094db7",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z091",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_RechnungsUebertragung.pdf",
+  "sha256": "5940aa8823530b8a4d02f64edd272273c19d6a1490b7e8ad29492b6d717a6bc7",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z092",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Rechnungskorrektur.pdf",
+  "sha256": "3e5d0034c62fee7d82e5801ebbc3797a9805bd40b1d12fba61b34b6478ddf0d6",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z093",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Reisekostenabrechnung.pdf",
+  "sha256": "7f27ce83b69853cfb7295d1ecdf30ce291e29efedd31074a0b70882ca1a0de67",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z094",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Reisekostenabrechnung_XRechnung_embedded.pdf",
+  "sha256": "cee3bb202935b8dd1ed165374e2c0a5fb7c1360724835e4465832bc661c5d950",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z095",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_SEPA_Prenotification.pdf",
+  "sha256": "c13a4a60e74be130e344507edad84b97cf55e92495d7796a5ec86531c678679e",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z096",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EN16931/zugferd_2p1_EN16931_Sachversicherung_berechneter_Steuersatz.pdf",
+  "sha256": "3cea01ca5c3e39db02c56b70a205918b456e4e27c761e13c1090efd4671e3353",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z097",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EXTENDED/zugferd_2p1_EXTENDED_Fremdwaehrung.pdf",
+  "sha256": "083acd08ac809441938775aa413da8cdae7094950ed110b3b7f8aee568eca016",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z098",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EXTENDED/zugferd_2p1_EXTENDED_InnergemeinschLieferungMehrereBestellungen.pdf",
+  "sha256": "44a636b41135d343da12693ac834d3ea8a23837729e3cd1c2321c8ebf09858be",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z099",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EXTENDED/zugferd_2p1_EXTENDED_Kostenrechnung.pdf",
+  "sha256": "6946ceab1ba56c32d3f45c9c247973accb853a818253454d1f575c4ef778b2d6",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z100",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EXTENDED/zugferd_2p1_EXTENDED_Rechnungskorrektur.pdf",
+  "sha256": "36d4d8c3c2f0a4126a7f8557e4384928efebe9e3a4943db7e184848d4313e6c5",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z101",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/EXTENDED/zugferd_2p1_EXTENDED_Warenrechnung.pdf",
+  "sha256": "969455201a87007cc423acfd246a1c7960325697a18a040e2f943837c004bd50",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z102",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/MINIMUM/zugferd_2p1_MINIMUM_Buchungshilfe.pdf",
+  "sha256": "3392f47541fbf14de7712afde976e298dd369000accab56bdaf8e4db8ab04c35",
+  "truth_url": null,
+  "truth_sha256": null
+ },
+ {
+  "id": "z103",
+  "corpus": "zugferd",
+  "producer": "symtrax",
+  "split": "test",
+  "url": "https://raw.githubusercontent.com/ZUGFeRD/corpus/82e886fb21369e3e83c1e97170a4ff406deceee7/ZUGFeRDv2/correct/symtrax/Beispiele/MINIMUM/zugferd_2p1_MINIMUM_Rechnung.pdf",
+  "sha256": "38b95693497b73c33524fddaff2e389a36a7b742fe3867e661b939cbb1e75aed",
+  "truth_url": null,
+  "truth_sha256": null
+ }
+]

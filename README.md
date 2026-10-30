@@ -18,6 +18,8 @@ automatically** or **routed to an approver with the exact reasons it was stopped
 ## Contents
 
 - [What it does](#what-it-does)
+- [What's real and what's simulated](#whats-real-and-whats-simulated)
+- [Extraction accuracy on real invoices](#extraction-accuracy-on-real-invoices)
 - [Screenshots](#screenshots)
 - [Architecture](#architecture)
 - [Quick start](#quick-start)
@@ -32,7 +34,7 @@ automatically** or **routed to an approver with the exact reasons it was stopped
 
 | Stage | What happens | Where |
 |---|---|---|
-| **Capture** | PDF text layer and ruled tables are parsed into header fields and line items, each with a confidence score. Fields that agree with each other (lines sum to the subtotal, subtotal + tax = total) are cross-checked. Low-confidence documents can be refined by an LLM, and scanned images can go through Azure AI Document Intelligence. | [`extraction/`](backend/app/services/extraction) |
+| **Capture** | ZUGFeRD / Factur-X / XRechnung e-invoices are read from their embedded XML. Other PDFs are parsed from the text layer, recognising labels in six languages, values beside or below their label, and locale number formats; the subtotal, tax and total are chosen so that they add up. Every field carries a confidence. Low-confidence documents can be refined by an LLM, and scans can go through Azure AI Document Intelligence. | [`extraction/`](backend/app/services/extraction) |
 | **Vendor match** | The vendor is resolved against a local replica of the ERP supplier master by GSTIN, falling back to fuzzy name matching (flagged as a warning). | [`vendors.py`](backend/app/services/vendors.py) |
 | **Validation** | Ten rules: required fields, vendor master, duplicates (normalised invoice number, or same amount within a week), line totals, invoice total, GST slab, dates, PO reference, **2-way price match** and **3-way goods-receipt match** against quantities received but not yet invoiced. | [`validation.py`](backend/app/services/validation.py) |
 | **Risk scoring** | An Isolation Forest scores vendor-relative features (amount vs. the vendor's median, tax-rate drift, re-billing gaps, round sums). The score is calibrated to 0–1 and always comes with plain-language reasons. | [`anomaly.py`](backend/app/services/anomaly.py) |
@@ -40,6 +42,48 @@ automatically** or **routed to an approver with the exact reasons it was stopped
 | **Approval** | Approvers decide in the UI. Segregation of duties (nobody approves an invoice they uploaded), approval limits by role, optimistic locking against double decisions, and a full audit trail. | [`invoices.py`](backend/app/services/invoices.py) |
 | **ERP posting** | Approved invoices are posted to the ERP with an idempotency key, so retries can never double-book. Transient failures retry with exponential backoff; business rejections park the invoice for an operator. | [`pipeline.py`](backend/app/services/pipeline.py) |
 | **Analytics** | KPI dashboard (spend, straight-through rate, cycle time, exceptions) and an **Ask** page that answers questions with read-only SQL, curated or LLM-generated, behind an AST-level guard. | [`analytics.py`](backend/app/services/analytics.py), [`ask.py`](backend/app/services/ask.py) |
+
+## What's real and what's simulated
+
+The platform's own logic is real and tested. The systems around it are stand-ins you swap for your own.
+
+| Part | Status |
+|---|---|
+| Extraction, validation rules, 3-way match, approval policy, segregation of duties, audit trail, job queue, retries, idempotent posting, auth, SQL guard, API, UI | **Real.** 122 backend tests, Playwright end-to-end tests; runs locally against SQLite and in CI against PostgreSQL. |
+| Extraction on documents this project didn't create | **Measured** on 115 public invoices; see [below](#extraction-accuracy-on-real-invoices). |
+| ZUGFeRD / Factur-X e-invoice reading | **Real**, exercised on 104 corpus e-invoices. |
+| ERP | **Mock.** [`erp-mock/`](erp-mock) is a small service with fictional suppliers and purchase orders. Its fields are modelled on SAP's supplier, PO and supplier-invoice objects but it is not SAP's OData API. `ErpClient` is the only piece that changes for a real ERP. |
+| Demo data | **Synthetic.** Twelve months of history are generated straight into the database by `iip seed`, and the 12 sample PDFs are rendered by the project. Company names are fictional. |
+| Anomaly model | **Trained on synthetic data** (and so evaluated on it). Retrain on your own approved invoices with `iip train-anomaly --from-db`. |
+| LLM refinement, Azure Document Intelligence, Azure Blob Storage | **Adapters**, tested against recorded or fake responses, not against the live services. |
+| Azure deployment (Bicep) | **Compiled in CI, not yet deployed.** |
+
+## Extraction accuracy on real invoices
+
+Before this benchmark existed, the extractor had only seen invoices it rendered itself, and it scored
+**0%** on real ones (invoice number, date and total all correct). It was then rebuilt on general rules:
+multilingual labels, locale number and date formats, values printed under their headings, sender-line
+and legal-form vendor detection, EU VAT formats, and totals chosen by consistency. Accuracy was
+measured on [115 public invoices](backend/benchmarks/realworld) from the invoice2data project and the
+ZUGFeRD e-invoice corpus. **Test** documents come from producers that were never looked at during
+development:
+
+| Field | Dev (66 docs) | Held-out test (49 docs) |
+|---|---|---|
+| Total amount | 98% | 90% |
+| Subtotal | 90% | 88% |
+| Tax amount | 93% | 82% |
+| Vendor name | 91% | 98% |
+| Vendor VAT ID | 97% | 96% |
+| Invoice number | 91% | 57% |
+| Invoice date | 89% | 55% |
+| **Invoice number + date + total all correct** | **86%** | **45%** |
+
+The gap on invoice numbers and dates is the honest limit of a rule-based parser on unseen layouts.
+Those invoices land in the review queue with a low-confidence flag rather than being approved.
+`uv run python -m benchmarks.realworld.run` reproduces the numbers, and CI fails if the held-out rate
+drops below 40%. Full method and per-producer results:
+[RESULTS.md](backend/benchmarks/realworld/RESULTS.md).
 
 ## Screenshots
 
@@ -202,7 +246,8 @@ in [`backend/app/config.py`](backend/app/config.py). The important ones:
 
 ```bash
 cd backend
-uv run pytest                 # 119 tests; set TEST_DATABASE_URL to run them against PostgreSQL
+uv run pytest                 # 122 tests; set TEST_DATABASE_URL to run them against PostgreSQL
+uv run python -m benchmarks.realworld.run   # extraction accuracy on 115 public invoices
 uv run ruff check . && uv run ruff format --check .
 uv run mypy app               # strict mode
 
@@ -261,13 +306,15 @@ Architecture decision records: [0001 PostgreSQL instead of Cosmos DB + Snowflake
 
 ## Limitations
 
-- The anomaly model ships trained on **synthetic** invoice streams (precision 0.98, recall 0.70,
-  ROC-AUC 0.995 on a held-out synthetic set with 6% injected anomalies). Retrain on real history with
-  `iip train-anomaly --from-db` once you have a few hundred approved invoices.
+- On layouts it hasn't seen, the text parser finds invoice number, date and total together on about
+  half of documents (see the benchmark). Totals, vendors and VAT IDs are far more reliable.
+- The anomaly model ships trained on **synthetic** invoice streams. Its metrics (precision 0.98,
+  recall 0.70 on a synthetic hold-out) say nothing about real fraud rates. Retrain on real history
+  with `iip train-anomaly --from-db` once you have a few hundred approved invoices.
 - The built-in extractor reads the PDF text layer. Scanned documents need the Azure Document
   Intelligence extractor (or another OCR adapter) and otherwise go to review.
-- The ERP is a mock that mirrors the shape of SAP's supplier, purchase-order and supplier-invoice APIs;
-  a real integration would replace `ErpClient`'s base URL and authentication.
+- The ERP is a mock. Its fields follow SAP's business objects, but a real integration (SAP OData,
+  ERPNext, Odoo…) means a new `ErpClient` implementation.
 - Login throttling is per API process. Put a shared store or the edge WAF in front for stricter limits.
 - Authentication is local accounts with JWTs; single sign-on (Entra ID / OIDC) is the natural next step.
 

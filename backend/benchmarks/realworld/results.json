@@ -1,0 +1,415 @@
+{
+  "results": {
+    "dev": {
+      "documents": 66,
+      "fields": {
+        "invoice_number": {
+          "accuracy": 0.909,
+          "n": 66
+        },
+        "invoice_date": {
+          "accuracy": 0.894,
+          "n": 66
+        },
+        "total_amount": {
+          "accuracy": 0.985,
+          "n": 65
+        },
+        "subtotal": {
+          "accuracy": 0.905,
+          "n": 63
+        },
+        "tax_amount": {
+          "accuracy": 0.93,
+          "n": 57
+        },
+        "currency": {
+          "accuracy": 0.985,
+          "n": 66
+        },
+        "vendor_name": {
+          "accuracy": 0.909,
+          "n": 66
+        },
+        "vendor_tax_id": {
+          "accuracy": 0.966,
+          "n": 59
+        },
+        "due_date": {
+          "accuracy": 1.0,
+          "n": 14
+        },
+        "po_number": {
+          "accuracy": 1.0,
+          "n": 18
+        }
+      },
+      "core_all_correct": 0.864
+    },
+    "test": {
+      "documents": 49,
+      "fields": {
+        "invoice_number": {
+          "accuracy": 0.571,
+          "n": 49
+        },
+        "invoice_date": {
+          "accuracy": 0.551,
+          "n": 49
+        },
+        "total_amount": {
+          "accuracy": 0.898,
+          "n": 49
+        },
+        "subtotal": {
+          "accuracy": 0.878,
+          "n": 49
+        },
+        "tax_amount": {
+          "accuracy": 0.816,
+          "n": 49
+        },
+        "currency": {
+          "accuracy": 0.98,
+          "n": 49
+        },
+        "vendor_name": {
+          "accuracy": 0.98,
+          "n": 49
+        },
+        "vendor_tax_id": {
+          "accuracy": 0.959,
+          "n": 49
+        },
+        "due_date": {
+          "accuracy": 0.65,
+          "n": 20
+        },
+        "po_number": {
+          "accuracy": 0.579,
+          "n": 19
+        }
+      },
+      "core_all_correct": 0.449
+    }
+  },
+  "producers": {
+    "invoice2data": {
+      "documents": 11,
+      "fields": {
+        "invoice_number": {
+          "accuracy": 0.727,
+          "n": 11
+        },
+        "invoice_date": {
+          "accuracy": 0.909,
+          "n": 11
+        },
+        "total_amount": {
+          "accuracy": 0.9,
+          "n": 10
+        },
+        "subtotal": {
+          "accuracy": 0.625,
+          "n": 8
+        },
+        "tax_amount": {
+          "accuracy": 0.5,
+          "n": 2
+        },
+        "currency": {
+          "accuracy": 1.0,
+          "n": 11
+        },
+        "vendor_name": {
+          "accuracy": 0.455,
+          "n": 11
+        },
+        "vendor_tax_id": {
+          "accuracy": 0.75,
+          "n": 4
+        }
+      },
+      "core_all_correct": 0.727,
+      "split": "dev"
+    },
+    "zugferd/XML-Rechnung": {
+      "documents": 26,
+      "fields": {
+        "invoice_number": {
+          "accuracy": 1.0,
+          "n": 26
+        },
+        "invoice_date": {
+          "accuracy": 1.0,
+          "n": 26
+        },
+        "total_amount": {
+          "accuracy": 1.0,
+          "n": 26
+        },
+        "subtotal": {
+          "accuracy": 1.0,
+          "n": 26
+        },
+        "tax_amount": {
+          "accuracy": 1.0,
+          "n": 26
+        },
+        "currency": {
+          "accuracy": 1.0,
+          "n": 26
+        },
+        "vendor_name": {
+          "accuracy": 1.0,
+          "n": 26
+        },
+        "vendor_tax_id": {
+          "accuracy": 1.0,
+          "n": 26
+        },
+        "due_date": {
+          "accuracy": 1.0,
+          "n": 6
+        },
+        "po_number": {
+          "accuracy": 1.0,
+          "n": 8
+        }
+      },
+      "core_all_correct": 1.0,
+      "split": "dev"
+    },
+    "zugferd/FNFE-factur-x-examples": {
+      "documents": 7,
+      "fields": {
+        "invoice_number": {
+          "accuracy": 0.857,
+          "n": 7
+        },
+        "invoice_date": {
+          "accuracy": 0.714,
+          "n": 7
+        },
+        "total_amount": {
+          "accuracy": 0.857,
+          "n": 7
+        },
+        "subtotal": {
+          "accuracy": 0.286,
+          "n": 7
+        },
+        "tax_amount": {
+          "accuracy": 0.286,
+          "n": 7
+        },
+        "currency": {
+          "accuracy": 1.0,
+          "n": 7
+        },
+        "vendor_name": {
+          "accuracy": 1.0,
+          "n": 7
+        },
+        "vendor_tax_id": {
+          "accuracy": 1.0,
+          "n": 7
+        },
+        "due_date": {
+          "accuracy": 0.75,
+          "n": 4
+        },
+        "po_number": {
+          "accuracy": 0.0,
+          "n": 7
+        }
+      },
+      "core_all_correct": 0.571,
+      "split": "test"
+    },
+    "zugferd/Mustangproject": {
+      "documents": 3,
+      "fields": {
+        "invoice_number": {
+          "accuracy": 0.667,
+          "n": 3
+        },
+        "invoice_date": {
+          "accuracy": 0.333,
+          "n": 3
+        },
+        "total_amount": {
+          "accuracy": 0.0,
+          "n": 3
+        },
+        "subtotal": {
+          "accuracy": 1.0,
+          "n": 3
+        },
+        "tax_amount": {
+          "accuracy": 0.0,
+          "n": 3
+        },
+        "currency": {
+          "accuracy": 1.0,
+          "n": 3
+        },
+        "vendor_name": {
+          "accuracy": 1.0,
+          "n": 3
+        },
+        "vendor_tax_id": {
+          "accuracy": 1.0,
+          "n": 3
+        },
+        "due_date": {
+          "accuracy": 0.0,
+          "n": 3
+        }
+      },
+      "core_all_correct": 0.0,
+      "split": "test"
+    },
+    "zugferd/PHP_@gpFacturX": {
+      "documents": 1,
+      "fields": {
+        "invoice_number": {
+          "accuracy": 0.0,
+          "n": 1
+        },
+        "invoice_date": {
+          "accuracy": 0.0,
+          "n": 1
+        },
+        "total_amount": {
+          "accuracy": 0.0,
+          "n": 1
+        },
+        "subtotal": {
+          "accuracy": 0.0,
+          "n": 1
+        },
+        "tax_amount": {
+          "accuracy": 0.0,
+          "n": 1
+        },
+        "currency": {
+          "accuracy": 1.0,
+          "n": 1
+        },
+        "vendor_name": {
+          "accuracy": 0.0,
+          "n": 1
+        },
+        "vendor_tax_id": {
+          "accuracy": 0.0,
+          "n": 1
+        },
+        "due_date": {
+          "accuracy": 0.0,
+          "n": 1
+        },
+        "po_number": {
+          "accuracy": 0.0,
+          "n": 1
+        }
+      },
+      "core_all_correct": 0.0,
+      "split": "test"
+    },
+    "zugferd/intarsys": {
+      "documents": 29,
+      "fields": {
+        "invoice_number": {
+          "accuracy": 0.897,
+          "n": 29
+        },
+        "invoice_date": {
+          "accuracy": 0.793,
+          "n": 29
+        },
+        "total_amount": {
+          "accuracy": 1.0,
+          "n": 29
+        },
+        "subtotal": {
+          "accuracy": 0.897,
+          "n": 29
+        },
+        "tax_amount": {
+          "accuracy": 0.897,
+          "n": 29
+        },
+        "currency": {
+          "accuracy": 0.966,
+          "n": 29
+        },
+        "vendor_name": {
+          "accuracy": 1.0,
+          "n": 29
+        },
+        "vendor_tax_id": {
+          "accuracy": 0.966,
+          "n": 29
+        },
+        "due_date": {
+          "accuracy": 1.0,
+          "n": 8
+        },
+        "po_number": {
+          "accuracy": 1.0,
+          "n": 10
+        }
+      },
+      "core_all_correct": 0.793,
+      "split": "dev"
+    },
+    "zugferd/symtrax": {
+      "documents": 38,
+      "fields": {
+        "invoice_number": {
+          "accuracy": 0.526,
+          "n": 38
+        },
+        "invoice_date": {
+          "accuracy": 0.553,
+          "n": 38
+        },
+        "total_amount": {
+          "accuracy": 1.0,
+          "n": 38
+        },
+        "subtotal": {
+          "accuracy": 1.0,
+          "n": 38
+        },
+        "tax_amount": {
+          "accuracy": 1.0,
+          "n": 38
+        },
+        "currency": {
+          "accuracy": 0.974,
+          "n": 38
+        },
+        "vendor_name": {
+          "accuracy": 1.0,
+          "n": 38
+        },
+        "vendor_tax_id": {
+          "accuracy": 0.974,
+          "n": 38
+        },
+        "due_date": {
+          "accuracy": 0.833,
+          "n": 12
+        },
+        "po_number": {
+          "accuracy": 1.0,
+          "n": 11
+        }
+      },
+      "core_all_correct": 0.474,
+      "split": "test"
+    }
+  }
+}

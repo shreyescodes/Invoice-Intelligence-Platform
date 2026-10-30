@@ -60,6 +60,26 @@ jobs:
           uv run iip export-openapi --out ../frontend/openapi.json
           git diff --exit-code ../frontend/openapi.json
 
+  extraction-benchmark:
+    name: Real-world extraction benchmark
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.6"
+          enable-cache: true
+      - run: uv sync --frozen --all-extras --python 3.12
+      - uses: actions/cache@v4
+        with:
+          path: backend/benchmarks/realworld/.cache
+          key: invoice-corpora-${{ hashFiles('backend/benchmarks/realworld/datasets.lock.json') }}
+      - name: Score 115 public invoices (fails if held-out accuracy regresses)
+        run: uv run python -m benchmarks.realworld.run --fail-under 0.40 | tee -a "$GITHUB_STEP_SUMMARY"
+
   erp-mock:
     name: ERP mock
     runs-on: ubuntu-latest

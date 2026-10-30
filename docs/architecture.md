@@ -93,11 +93,25 @@ sequenceDiagram
 
 ### Extraction
 
-`PdfTextExtractor` reads the PDF text layer with pdfplumber and uses ruled tables when it finds them.
-`parse_invoice_text` then recognises labelled fields (invoice number, PO, dates, GSTIN, subtotal, tax
-lines, totals) one line at a time, so a label never pairs with a value from the next line. Tax and
-total lines are only read from the summary block, so a line item like "Tax advisory services" is never
-counted as tax.
+1. **Embedded e-invoice.** If the PDF carries a ZUGFeRD / Factur-X / XRechnung CII attachment, it is
+   parsed with defusedxml ([`einvoice.py`](../backend/app/services/extraction/einvoice.py)) and used as
+   is, at confidence 1.0.
+2. **Text layer.** Otherwise pdfplumber produces two views of each page: plain text and
+   column-preserving layout text. [`fields.py`](../backend/app/services/extraction/fields.py) scans the
+   layout text for labels in English, German, French, Dutch, Spanish and Italian. Each label owns the
+   text up to the next label on its line, so "Net 100,00 VAT 19,00 Total 119,00" gives three values. A
+   label with only other headings beside it is a column heading, and its value is read from the row
+   below. Amounts are parsed per token with the right decimal separator
+   ([`locale_formats.py`](../backend/app/services/extraction/locale_formats.py)), dates inside a total
+   line are masked, and qualifiers decide meaning ("Rechnungssumme *ohne* USt." is the subtotal). The
+   subtotal, tax and total are chosen as the combination that adds up. Vendors come from seller
+   labels, a letter's sender line or a legal form (GmbH, B.V., Ltd…), never from the buyer's block;
+   tax IDs come from GSTIN and EU VAT formats.
+3. **Line items** come from ruled tables or text rows.
+
+Accuracy on 115 public invoices is measured by [`benchmarks/realworld`](../backend/benchmarks/realworld):
+86% of dev and 45% of held-out documents have invoice number, date and total all correct (0% before
+this design), with totals at 90% and vendor VAT IDs at 96% on held-out documents.
 
 Each field gets a confidence: 0.95 when found next to a label, 0.65 for positional guesses, and 0.99
 when independent fields agree (line items sum to the subtotal; subtotal + tax = total). The weighted
