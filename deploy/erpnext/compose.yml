@@ -60,7 +60,10 @@ services:
         wait-for-it -t 120 redis-cache:6379 &&
         wait-for-it -t 120 redis-queue:6379 &&
         bench new-site --mariadb-user-host-login-scope='%' --admin-password=admin
-        --db-root-username=root --db-root-password=admin --install-app erpnext --set-default frontend
+        --db-root-username=root --db-root-password=admin --install-app erpnext --set-default frontend &&
+        { jq -e '.encryption_key' sites/frontend/site_config.json > /dev/null ||
+          bench --site frontend set-config encryption_key
+          "$$(env/bin/python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"; }
 
   backend:
     <<: *erpnext
