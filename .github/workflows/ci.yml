@@ -37,7 +37,7 @@ jobs:
       TEST_DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql+psycopg://iip:iip@localhost:5432/iip_test' || '' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           version: "0.13.6"
           enable-cache: true
@@ -68,7 +68,7 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           version: "0.13.6"
           enable-cache: true
@@ -88,7 +88,7 @@ jobs:
         working-directory: erp-mock
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           version: "0.13.6"
           enable-cache: true
@@ -109,7 +109,7 @@ jobs:
           docker compose up --detach
           docker compose wait create-site || true
           test "$(docker compose ps --all --format '{{.ExitCode}}' create-site)" = "0"
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           version: "0.13.6"
           enable-cache: true
